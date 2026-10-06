@@ -170,7 +170,32 @@ h2.sec .num{letter-spacing:0}
 .wdays button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
 .hint{color:var(--muted);font-size:13px;margin:4px 0 0}
 
-#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100% - 32px)}
+/* mobile quick entry: floating button + bottom sheet */
+.fab{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:8;width:56px;height:56px;border-radius:50%;border:0;background:var(--accent);color:var(--surface);font-size:28px;line-height:1;box-shadow:0 4px 14px rgb(0 0 0/.22);display:none;place-items:center}
+@media (max-width:620px){.fab{display:grid} body{padding-bottom:96px} #toast{bottom:calc(86px + env(safe-area-inset-bottom,0px))}}
+.sheet-bg{position:fixed;inset:0;z-index:20;background:rgb(10 14 22/.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet-bg[hidden]{display:none}
+.sheet{width:100%;max-width:560px;max-height:86vh;overflow:auto;background:var(--surface);border-radius:16px 16px 0 0;padding:8px 16px calc(18px + env(safe-area-inset-bottom,0px));display:grid;gap:12px;box-shadow:0 -6px 24px rgb(0 0 0/.18)}
+@media (min-width:621px){.sheet-bg{align-items:center}.sheet{border-radius:14px;padding-bottom:18px}}
+.grip{width:40px;height:4px;border-radius:4px;background:var(--line);justify-self:center;margin-bottom:2px}
+.sheet-head{display:flex;align-items:center;gap:8px}
+.sheet-head h2{font-family:var(--f-display);font-weight:600;font-size:18px;margin:0 auto 0 0}
+.sheet .seg{display:flex}
+.sheet .seg button{flex:1;padding:7px 8px;font-size:14px}
+.sheet .field,.sheet select{font-size:16px;padding:9px 10px}
+.sheet textarea.field{width:100%;min-height:84px;resize:vertical;font-family:inherit;line-height:1.5}
+.sheet .row{display:flex;gap:8px;flex-wrap:wrap}
+.sheet .row>*{flex:1 1 120px;min-width:0}
+.sheet .btn{padding:9px 14px;font-size:15px}
+.picks{display:grid;gap:6px;max-height:34vh;overflow:auto}
+.pick{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:9px 11px;font-size:15px;min-width:0}
+.pick .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pick .m{font-size:12px;color:var(--muted);flex:none}
+.pick[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.pick.done .t{color:var(--muted);text-decoration:line-through}
+.sheet .lbl{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.sheet .lastline{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+#toast{z-index:30;position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100% - 32px)}
 #toast.on{opacity:1}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
@@ -278,6 +303,10 @@ h2.sec .num{letter-spacing:0}
     </form>
   </section>
 </main>
+<button class="fab" id="fab" data-act="sheet" data-i18n-aria="quickEntry">＋</button>
+<div class="sheet-bg" id="sheet" hidden data-act="sheetbg">
+  <form class="sheet" id="sheet-form" role="dialog" aria-modal="true" aria-labelledby="sheet-h" autocomplete="off"></form>
+</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -314,6 +343,7 @@ const I18N = {
     t_restored:'已恢复到今天', t_keepOneCat:'至少保留一个分类', t_routineDeleted:'已删除。今天已生成的那一条保留在列表里',
     t_rollFail:'每日刷新没有完成，稍后会自动重试', t_syncBroken:'同步中断，请刷新页面', t_archFail:'归档载入失败',
     t_langSaved:'已切换为中文',
+    quickEntry:'快捷记录', shTask:'新任务', shProgress:'记进展', shNote:'随手记', shPick:'选择任务', shNoTasks:'今天没有任务。先在“新任务”里添加一条。', setDoing:'标为进行中', setDone:'标为完成', close:'关闭', latestLbl:'最新：',
     e_quota:'存储已满：请在归档里删除一些旧任务', e_perm:'没有保存权限，或内容格式不对',
     e_rate:'操作太快了，稍等几秒再试', e_generic:'保存失败，请检查网络后再试',
     uncategorized:'未分类', cat_work:'工作', cat_life:'个人', cat_study:'学习', cat_health:'健康'
@@ -348,6 +378,7 @@ const I18N = {
     t_restored:'Moved back to today', t_keepOneCat:'Keep at least one category', t_routineDeleted:"Deleted. Today's copy stays on your list",
     t_rollFail:"Daily refresh didn't finish. It will retry shortly", t_syncBroken:'Sync stopped. Reload the page', t_archFail:"Couldn't load the archive",
     t_langSaved:'Switched to English',
+    quickEntry:'Quick entry', shTask:'New task', shProgress:'Update', shNote:'Quick note', shPick:'CHOOSE A TASK', shNoTasks:'No tasks today. Add one under "New task" first.', setDoing:'Mark in progress', setDone:'Mark done', close:'Close', latestLbl:'Latest: ',
     e_quota:'Storage is full. Delete some old archived tasks', e_perm:"You don't have permission to save, or the content is invalid",
     e_rate:'Too many changes at once. Wait a few seconds', e_generic:"Couldn't save. Check your connection and try again",
     uncategorized:'Uncategorized', cat_work:'Work', cat_life:'Personal', cat_study:'Study', cat_health:'Health'
@@ -393,8 +424,10 @@ const S = {
   view: 'today', filter: 'all', open: null, confirmDel: null, drafts: {}, histOpen: new Set(),
   journal: [], journalKey: null, journalUnsub: null,
   cal: {mode:'month', anchor:null, sel:null, fetched:[], selNotes:[], key:null},
-  arch: [], archFilter: 'all', archLoaded: false, rolling: false
+  arch: [], archFilter: 'all', archLoaded: false, rolling: false,
+  sheet: {open: false, tab: 'progress', taskId: null, mode: 'progress', when: 'today'}
 };
+const isMobile = () => window.matchMedia('(max-width: 620px)').matches;
 try { const v = localStorage.getItem('rcb-view'); if (v) S.view = v; } catch {}
 
 const refreshMin = () => { const [h,m] = (S.settings.refreshTime || '04:00').split(':').map(Number); return (h||0)*60 + (m||0); };
@@ -523,6 +556,7 @@ function render() {
   if (S.view === 'cal') renderCal();
   if (S.view === 'arch') renderArch();
   if (S.view === 'set') renderSet();
+  renderSheet();
   if (aid && document.getElementById(aid) && document.getElementById(aid) !== a) {
     const el = document.getElementById(aid); el.focus();
     try { if (s0 != null) el.setSelectionRange(s0, s1); } catch {}
@@ -627,6 +661,87 @@ function detail(x, mode) {
       <button class="btn ${conf ? 'danger' : 'ghost'}" data-act="del">${esc(conf ? t('confirmDel') : t('del'))}</button>
     </div>
   </div>`;
+}
+
+/* quick-entry sheet */
+function openSheet(o = {}) {
+  const td = today();
+  const open = S.tasks.filter(x => x.date <= td && x.status !== 'done').sort(byState);
+  S.sheet = {...S.sheet, open: true, ...o};
+  if (S.sheet.tab === 'progress' && !findTask(S.sheet.taskId || '')) S.sheet.taskId = open[0] ? open[0].id : null;
+  document.body.style.overflow = 'hidden';
+  render();
+  setTimeout(() => { const f = document.getElementById(S.sheet.tab === 'task' ? 'sh-title' : S.sheet.tab === 'note' ? 'sh-note' : 'sh-text');
+    if (f && !(S.sheet.tab === 'progress' && !S.sheet.taskId)) f.focus(); }, 30);
+}
+function closeSheet() { S.sheet.open = false; document.body.style.overflow = ''; render(); }
+function renderSheet() {
+  const bg = $('#sheet'); $('#fab').hidden = S.sheet.open;
+  bg.hidden = !S.sheet.open; if (!S.sheet.open) return;
+  const sh = S.sheet; const td = today();
+  const tab = k => `<button type="button" data-act="shtab" data-tab="${k}" aria-pressed="${sh.tab===k}">${esc(t(k==='task'?'shTask':k==='note'?'shNote':'shProgress'))}</button>`;
+  const d = k => esc(S.drafts[k] ?? '');
+  let body = '';
+  if (sh.tab === 'task') {
+    body = `<input class="field" id="sh-title" data-draft value="${d('sh-title')}" placeholder="${esc(t('qaPh'))}" aria-label="${esc(t('taskTitle'))}">
+      <div class="row">
+        <select id="sh-cat" aria-label="${esc(t('category'))}">${catOptions(S.drafts['sh-cat'] || cats()[0].id)}</select>
+        <select id="sh-repeat" aria-label="${esc(t('repeat'))}"><option value="none">${esc(t('repNone'))}</option><option value="daily">${esc(t('repDaily'))}</option><option value="weekday">${esc(t('repWeekday'))}</option></select>
+      </div>
+      <div class="seg"><button type="button" data-act="shwhen" data-w="today" aria-pressed="${sh.when==='today'}">${esc(t('today'))}</button><button type="button" data-act="shwhen" data-w="tomorrow" aria-pressed="${sh.when==='tomorrow'}">${esc(t('tomorrow'))}</button></div>
+      <button class="btn primary" type="submit">${esc(t('add'))}</button>`;
+  } else if (sh.tab === 'note') {
+    body = `<textarea class="field" id="sh-note" data-draft placeholder="${esc(t('qnPh'))}" aria-label="${esc(t('note'))}">${d('sh-note')}</textarea>
+      <button class="btn primary" type="submit">${esc(t('save'))}</button>`;
+  } else {
+    const list = S.tasks.filter(x => x.date <= td).sort(byState);
+    const cur = findTask(sh.taskId || '');
+    const items = cur ? [...(cur.progress||[]), ...(cur.notes||[])].sort((a, b) => b.t - a.t) : [];
+    body = list.length ? `<div class="lbl">${esc(t('shPick'))}</div>
+      <div class="picks">${list.map(x => `<button type="button" class="pick${x.status==='done'?' done':''}" data-act="shpick" data-tid="${esc(x.id)}" aria-pressed="${x.id===sh.taskId}">
+        <i class="dot" style="background:var(--${catOf(x.cat).color})"></i><span class="t">${esc(x.title)}</span><span class="m">${esc(t('st_' + x.status))}</span></button>`).join('')}</div>
+      ${cur ? `${items.length ? `<div class="lastline">${esc(t('latestLbl'))}${esc(items[0].text)}</div>` : ''}
+      <div class="seg"><button type="button" data-act="shmode" data-m="progress" aria-pressed="${sh.mode==='progress'}">${esc(t('progress'))}</button><button type="button" data-act="shmode" data-m="note" aria-pressed="${sh.mode==='note'}">${esc(t('note'))}</button></div>
+      <textarea class="field" id="sh-text" data-draft placeholder="${esc(sh.mode==='progress' ? t('phProgress') : t('phNote'))}" aria-label="${esc(sh.mode==='progress' ? t('progress') : t('note'))}">${d('sh-text')}</textarea>
+      <div class="row">
+        ${cur.status === 'todo' ? `<button type="button" class="btn" data-act="shstatus" data-s="doing">${esc(t('setDoing'))}</button>` : ''}
+        ${cur.status !== 'done' ? `<button type="button" class="btn" data-act="shstatus" data-s="done">${esc(t('setDone'))}</button>` : ''}
+        <button class="btn primary" type="submit">${esc(t('save'))}</button>
+      </div>` : ''}`
+      : `<div class="empty">${esc(t('shNoTasks'))}</div>`;
+  }
+  $('#sheet-form').innerHTML = `<div class="grip"></div>
+    <div class="sheet-head"><h2 id="sheet-h">${esc(t('quickEntry'))}</h2><button type="button" class="btn ghost" data-act="sheetclose">${esc(t('close'))}</button></div>
+    <div class="seg">${tab('progress')}${tab('task')}${tab('note')}</div>${body}`;
+  const rp = document.getElementById('sh-repeat'); if (rp && S.drafts['sh-repeat']) rp.value = S.drafts['sh-repeat'];
+}
+async function submitSheet() {
+  if (!db) return toast(t('t_needLogin'));
+  const sh = S.sheet; const td = today();
+  if (sh.tab === 'task') {
+    const title = ($('#sh-title').value || '').trim(); if (!title) return;
+    const cat = $('#sh-cat').value, rep = $('#sh-repeat').value;
+    S.drafts['sh-title'] = ''; S.drafts['sh-cat'] = cat; S.drafts['sh-repeat'] = rep;
+    await safe(async () => {
+      if (rep !== 'none') {
+        const ref = db.collection('routines').doc();
+        const r = {title, cat, days: rep === 'daily' ? [0,1,2,3,4,5,6] : [1,2,3,4,5], active: true, createdAt: Date.now()};
+        await ref.set(r); await genRoutine({id: ref.id, ...r}, td); toast(t('t_routineAdded'));
+      } else { await addTask({title, cat, date: sh.when === 'tomorrow' ? addDays(td, 1) : td}); toast(t('t_saved')); }
+    });
+    closeSheet();
+  } else if (sh.tab === 'note') {
+    const text = ($('#sh-note').value || '').trim(); if (!text) return;
+    S.drafts['sh-note'] = ''; await safe(() => addJournal(text)); toast(t('t_saved')); closeSheet();
+  } else {
+    const x = findTask(sh.taskId || ''); const text = ($('#sh-text') ? $('#sh-text').value : '').trim();
+    if (!x || !text) return;
+    const key = sh.mode === 'note' ? 'notes' : 'progress';
+    const patch = {[key]: [...(x[key] || []), {t: Date.now(), text}]};
+    if (key === 'progress' && x.status === 'todo') patch.status = 'doing';
+    S.drafts['sh-text'] = '';
+    await updTask(x.id, patch); toast(t('t_saved')); closeSheet();
+  }
 }
 
 /* calendar */
@@ -772,6 +887,7 @@ $('#set-lang').addEventListener('change', e => {
   if (db) safe(() => saveSettings({lang: l}));
 });
 
+document.addEventListener('submit', e => { if (e.target.id === 'sheet-form') { e.preventDefault(); submitSheet(); } });
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'cd') return; e.preventDefault(); if (!db) return;
   const title = $('#cd-title').value.trim(); if (!title) return;
@@ -784,7 +900,9 @@ document.addEventListener('submit', async e => {
 document.addEventListener('keydown', e => {
   const el = e.target;
   if (e.key === 'Enter' && el.dataset && el.dataset.entry) { e.preventDefault(); submitEntry(el.dataset.entry); }
+  if (e.key === 'Escape' && S.sheet.open) { closeSheet(); return; }
   if (e.key === 'Escape' && S.open) { S.open = null; render(); }
+  if (e.key === 'Enter' && !e.shiftKey && el.id === 'sh-text') { e.preventDefault(); submitSheet(); }
 });
 document.addEventListener('change', e => {
   const el = e.target;
@@ -796,6 +914,7 @@ document.addEventListener('change', e => {
     const rid = el.closest('[data-rid]').dataset.rid; safe(() => db.doc('routines/' + rid).update({cat: el.value}));
   }
   if (el.id === 'cd-cat') S.drafts['cd-cat'] = el.value;
+  if (el.id === 'sh-cat' || el.id === 'sh-repeat') S.drafts[el.id] = el.value;
 });
 
 async function submitEntry(id) {
@@ -827,6 +946,19 @@ document.addEventListener('click', async e => {
     S.cal.anchor = a; if (d === 0) S.cal.sel = td; loadCal(); render(); return;
   }
   if (act === 'calsel') { selectDay(b.dataset.day); return; }
+  if (act === 'sheetbg') { if (e.target === b) closeSheet(); return; }
+  if (act === 'sheet') { openSheet({tab: 'progress'}); return; }
+  if (act === 'sheetclose') { closeSheet(); return; }
+  if (act === 'shtab') { openSheet({tab: b.dataset.tab}); return; }
+  if (act === 'shwhen') { S.sheet.when = b.dataset.w; render(); return; }
+  if (act === 'shmode') { S.sheet.mode = b.dataset.m; render(); const f = $('#sh-text'); if (f) f.focus(); return; }
+  if (act === 'shpick') { S.sheet.taskId = b.dataset.tid; render(); const f = $('#sh-text'); if (f) f.focus(); return; }
+  if (act === 'shstatus') {
+    const x = findTask(S.sheet.taskId || ''); if (!x || !db) return;
+    const st = b.dataset.s; const td = today();
+    await updTask(x.id, st === 'done' ? {status: 'done', doneAt: Date.now(), date: x.date > td ? td : x.date} : {status: st});
+    toast(t('t_saved')); if (st === 'done') closeSheet(); return;
+  }
   if (!db) { toast(t('t_needLogin')); return; }
   const x = id && findTask(id); const td = today();
   switch (act) {
@@ -842,6 +974,7 @@ document.addEventListener('click', async e => {
     case 'expand': S.open = S.open && S.open.id === id ? null : {id, mode: 'progress'}; S.confirmDel = null; render(); break;
     case 'open': {
       const m = b.dataset.m;
+      if (isMobile() && b.closest('.tacts')) { S.open = null; openSheet({tab: 'progress', taskId: id, mode: m}); break; }
       S.open = S.open && S.open.id === id && S.open.mode === m && b.closest('.tacts') ? null : {id, mode: m};
       S.confirmDel = null; render();
       const inp = document.getElementById('in-' + id); if (inp) inp.focus();
