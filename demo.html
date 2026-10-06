@@ -1,0 +1,781 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script src="demo/mock-claude.js"></script></head><body>
+<title>每日日程本</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow working column (max 760px), sticky tab bar, lists not cards; calendar widens to 1000px */
+:root{
+  --bg:#F2F4F7; --surface:#FFFFFF; --sunk:#E9ECF2; --line:#DCE1E9; --ink:#16202F; --muted:#5F6B7E;
+  --accent:#2E49C9; --accent-soft:#E4E8FA; --ok:#1C7F55; --warn:#A8521B; --danger:#B4322A;
+  --c1:#2E6BD8; --c2:#CC4A3E; --c3:#18916B; --c4:#B9820F; --c5:#8048C8; --c6:#5A6A80;
+  --f-display:"Noto Serif SC","Songti SC",serif;
+  --f-body:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1219; --surface:#161B24; --sunk:#1D2330; --line:#272F3D; --ink:#E6E9EF; --muted:#8D97A9;
+  --accent:#8299FF; --accent-soft:#232B4A; --ok:#4CC08A; --warn:#E39657; --danger:#F07468;
+  --c1:#6F9EF0; --c2:#EE7D70; --c3:#4CC39A; --c4:#E2B048; --c5:#B48AF0; --c6:#93A2B8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1219; --surface:#161B24; --sunk:#1D2330; --line:#272F3D; --ink:#E6E9EF; --muted:#8D97A9;
+  --accent:#8299FF; --accent-soft:#232B4A; --ok:#4CC08A; --warn:#E39657; --danger:#F07468;
+  --c1:#6F9EF0; --c2:#EE7D70; --c3:#4CC39A; --c4:#E2B048; --c5:#B48AF0; --c6:#93A2B8; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;padding:0 16px 64px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto}
+.wrap.wide{max-width:1000px}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);margin:0 -16px;padding:10px 16px;border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;max-width:1000px}
+.brand{font-family:var(--f-display);font-size:18px;letter-spacing:.04em}
+.tabs{display:flex;gap:2px;background:var(--sunk);border-radius:9px;padding:3px;margin-left:auto}
+.tabs button{border:0;background:none;padding:5px 14px;border-radius:7px;color:var(--muted);font-size:14px}
+.tabs button[aria-current="true"]{background:var(--surface);color:var(--ink);font-weight:500;box-shadow:0 1px 2px rgb(0 0 0/.08)}
+
+main{padding-top:20px}
+section[hidden]{display:none}
+.banner{background:var(--accent-soft);border-radius:var(--r);padding:12px 14px;margin-bottom:16px;font-size:14px}
+
+/* day header */
+.dayhead{display:grid;gap:4px;margin-bottom:18px}
+.dayhead h1{font-family:var(--f-display);font-weight:600;font-size:30px;margin:0;line-height:1.2;text-wrap:balance}
+.dayhead .sub{color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:4px 14px}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.bar{height:4px;background:var(--sunk);border-radius:4px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--ok);transition:width .3s}
+
+/* forms */
+.qa{display:flex;flex-wrap:wrap;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px}
+.qa input[type=text]{flex:1 1 220px;min-width:0;border:0;background:none;padding:6px 8px;font-size:16px}
+.qa input[type=text]:focus{outline:none}
+.qa .opts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+select,input[type=date],input[type=time],.field{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:5px 8px;font-size:14px;min-width:0}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:5px 12px;font-size:14px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .btn.primary{color:#0E1219}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.primary{color:#0E1219}}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted)}
+.btn.danger{color:var(--danger)}
+.btn:hover{border-color:var(--muted)}
+
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:16px 0 4px}
+.chip{border:1px solid var(--line);background:none;border-radius:99px;padding:2px 11px;font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none}
+
+h2.sec{font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:500;margin:22px 0 6px;display:flex;align-items:center;gap:8px}
+h2.sec .num{letter-spacing:0}
+
+/* task list */
+.list{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.task{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;padding:10px 12px;border-top:1px solid var(--line);align-items:start}
+.task:first-child{border-top:0}
+.chk{width:20px;height:20px;border-radius:50%;border:2px solid var(--cc);background:none;margin-top:2px;padding:0;display:grid;place-items:center}
+.chk::after{content:"";width:8px;height:5px;border:2px solid transparent;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.st-done .chk{background:var(--cc)}
+.st-done .chk::after{border-color:var(--surface)}
+.tbody{min-width:0}
+.ttitle{background:none;border:0;padding:0;text-align:left;font-size:15px;overflow-wrap:anywhere}
+.st-done .ttitle{color:var(--muted);text-decoration:line-through}
+.tmeta{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12.5px;color:var(--muted);margin-top:2px;align-items:center}
+.pill{border:0;border-radius:5px;padding:0 7px;font-size:12px;line-height:20px;background:var(--sunk);color:var(--muted)}
+.pill.doing{background:var(--accent-soft);color:var(--accent)}
+.pill.done{color:var(--ok)}
+.carry{color:var(--warn)}
+.latest{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.tacts{display:flex;gap:2px}
+.tacts button{border:0;background:none;color:var(--muted);font-size:13px;padding:2px 7px;border-radius:6px}
+.tacts button:hover,.tacts button[aria-pressed="true"]{background:var(--sunk);color:var(--ink)}
+.detail{grid-column:2/4;display:grid;gap:10px;padding-top:6px}
+.entry{display:flex;gap:6px}
+.entry input{flex:1;min-width:0}
+.seg{display:inline-flex;background:var(--sunk);border-radius:7px;padding:2px}
+.seg button{border:0;background:none;border-radius:5px;padding:2px 10px;font-size:13px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
+.tl{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:13.5px}
+.tl li{display:grid;grid-template-columns:86px 1fr;gap:8px}
+.tl time{font-family:var(--f-mono);font-size:12px;color:var(--muted);padding-top:1px}
+.tl .k{font-size:11px;border-radius:4px;padding:0 5px;margin-right:6px;background:var(--sunk);color:var(--muted)}
+.tl .k.p{background:var(--accent-soft);color:var(--accent)}
+.edit{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border-top:1px dashed var(--line);padding-top:10px}
+.edit .field{flex:1 1 180px}
+.empty{padding:22px 16px;color:var(--muted);font-size:14px;text-align:center}
+
+.notes{list-style:none;margin:0;padding:0}
+.notes li{display:grid;grid-template-columns:56px 1fr auto;gap:8px;padding:8px 12px;border-top:1px solid var(--line);font-size:14px}
+.notes li:first-child{border-top:0}
+.notes time{font-family:var(--f-mono);font-size:12px;color:var(--muted);padding-top:2px}
+.notes .x{border:0;background:none;color:var(--muted);font-size:13px}
+.qn{display:flex;gap:6px;margin-bottom:8px}
+.qn input{flex:1;min-width:0}
+
+.up{display:grid;grid-template-columns:96px 1fr;gap:4px 12px;padding:8px 12px;border-top:1px solid var(--line);font-size:14px}
+.up:first-child{border-top:0}
+.up .d{color:var(--muted);font-size:13px}
+.up .items{display:flex;flex-direction:column;gap:2px}
+.up .items span{display:flex;gap:8px;align-items:center}
+
+/* calendar */
+.calbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.calbar h1{font-family:var(--f-display);font-weight:600;font-size:22px;margin:0 auto 0 0}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--line);gap:1px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.wd{background:var(--sunk);font-size:12px;color:var(--muted);text-align:center;padding:4px 0}
+.cell{background:var(--surface);border:0;text-align:left;padding:6px;min-height:96px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.week .cell{min-height:260px}
+.cell.out{background:var(--bg);color:var(--muted)}
+.cell .dn{font-family:var(--f-mono);font-size:12.5px}
+.cell.today .dn{background:var(--accent);color:var(--surface);border-radius:5px;padding:0 5px;align-self:flex-start}
+.cell.sel{box-shadow:inset 0 0 0 2px var(--accent)}
+.ci{display:flex;gap:5px;align-items:center;font-size:12px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ci span{overflow:hidden;text-overflow:ellipsis}
+.ci.done span{color:var(--muted);text-decoration:line-through}
+.more{font-size:11.5px;color:var(--muted)}
+@media (max-width:620px){
+  .cell{min-height:62px;padding:4px}
+  .month .ci span{display:none}
+  .month .cis{display:flex;flex-wrap:wrap;gap:3px}
+  .month .ci{display:inline-flex}
+  .week .cell{min-height:150px}
+  .week .ci{font-size:11px}
+  .tl li{grid-template-columns:1fr}
+  .up{grid-template-columns:1fr}
+}
+.cis{display:flex;flex-direction:column;gap:3px;min-width:0}
+.dayp{margin-top:18px}
+.dayp h2:not(.sec){font-family:var(--f-display);font-weight:600;font-size:18px;margin:0 0 8px}
+.mini{display:flex;gap:10px;align-items:center;padding:8px 12px;border-top:1px solid var(--line);font-size:14px}
+.mini:first-child{border-top:0}
+.mini .t{flex:1;min-width:0;overflow-wrap:anywhere}
+.mini.done .t{color:var(--muted);text-decoration:line-through}
+.mini .m{font-size:12px;color:var(--muted)}
+
+/* archive */
+.agrp h3{font-size:13px;color:var(--muted);font-weight:500;margin:18px 0 6px}
+
+/* settings */
+.set{display:grid;gap:8px;margin-bottom:8px}
+.srow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid var(--line)}
+.srow:first-child{border-top:0}
+.srow .field{flex:1 1 160px}
+.sw{display:flex;gap:4px}
+.sw button{width:20px;height:20px;border-radius:50%;border:2px solid transparent;padding:0}
+.sw button[aria-pressed="true"]{border-color:var(--ink)}
+.wdays{display:flex;gap:3px}
+.wdays button{width:28px;height:26px;border-radius:6px;border:1px solid var(--line);background:none;font-size:12.5px;color:var(--muted);padding:0}
+.wdays button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.hint{color:var(--muted);font-size:13px;margin:4px 0 0}
+
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100% - 32px)}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top"><div class="wrap">
+  <span class="brand">日程本</span>
+  <nav class="tabs" aria-label="视图">
+    <button data-act="tab" data-v="today">今天</button>
+    <button data-act="tab" data-v="cal">日历</button>
+    <button data-act="tab" data-v="arch">归档</button>
+    <button data-act="tab" data-v="set">设置</button>
+  </nav>
+</div></header>
+
+<main>
+  <div class="wrap" id="banner-wrap"></div>
+
+  <section id="v-today" class="wrap">
+    <div class="dayhead" id="dayhead"></div>
+    <form class="qa" id="qa" autocomplete="off">
+      <input type="text" id="qa-title" placeholder="添加任务，回车保存" aria-label="任务标题">
+      <div class="opts">
+        <select id="qa-cat" aria-label="分类"></select>
+        <select id="qa-when" aria-label="日期">
+          <option value="today">今天</option><option value="tomorrow">明天</option><option value="pick">选日期…</option>
+        </select>
+        <input type="date" id="qa-date" hidden aria-label="选择日期">
+        <select id="qa-repeat" aria-label="重复">
+          <option value="none">不重复</option><option value="daily">每天</option><option value="weekday">工作日</option>
+        </select>
+        <button class="btn primary" type="submit">添加</button>
+      </div>
+    </form>
+    <div class="chips" id="catfilter"></div>
+    <div id="today-list"></div>
+    <h2 class="sec">随手记</h2>
+    <form class="qn" id="qn" autocomplete="off">
+      <input class="field" id="qn-text" placeholder="记一笔，回车保存" aria-label="笔记">
+      <button class="btn" type="submit">保存</button>
+    </form>
+    <div id="today-notes"></div>
+    <div id="upcoming"></div>
+  </section>
+
+  <section id="v-cal" class="wrap wide" hidden>
+    <div class="calbar">
+      <h1 id="cal-title"></h1>
+      <div class="seg" id="cal-mode">
+        <button data-act="calmode" data-m="month">月</button><button data-act="calmode" data-m="week">周</button>
+      </div>
+      <button class="btn" data-act="calnav" data-d="-1" aria-label="上一页">‹</button>
+      <button class="btn" data-act="calnav" data-d="0">今天</button>
+      <button class="btn" data-act="calnav" data-d="1" aria-label="下一页">›</button>
+    </div>
+    <div id="cal-grid"></div>
+    <div class="dayp" id="cal-day"></div>
+  </section>
+
+  <section id="v-arch" class="wrap" hidden>
+    <div class="dayhead"><h1>归档</h1><div class="sub">每天刷新时，已完成的任务和没做完的日常任务会移到这里。</div></div>
+    <div class="chips" id="arch-filter"></div>
+    <div id="arch-list"></div>
+  </section>
+
+  <section id="v-set" class="wrap" hidden>
+    <div class="dayhead"><h1>设置</h1></div>
+    <h2 class="sec">每日刷新</h2>
+    <div class="list"><div class="srow">
+      <label for="set-time">每天几点开始新的一天</label>
+      <input type="time" id="set-time" step="900">
+      <button class="btn" data-act="tidy">立即归档已完成</button>
+    </div></div>
+    <p class="hint">到点后：已完成任务归档，没完成的待办顺延到新一天，日常任务重新生成。设备不在线时，下次打开页面会自动补上。</p>
+    <h2 class="sec">分类</h2>
+    <div class="list" id="set-cats"></div>
+    <p><button class="btn" data-act="addcat">＋ 新分类</button></p>
+    <h2 class="sec">日常任务</h2>
+    <div class="list" id="set-routines"></div>
+    <form class="qa" id="ra" style="margin-top:8px" autocomplete="off">
+      <input type="text" id="ra-title" placeholder="新的日常任务，如：晨间计划 15 分钟" aria-label="日常任务标题">
+      <div class="opts">
+        <select id="ra-cat" aria-label="分类"></select>
+        <select id="ra-days" aria-label="重复"><option value="daily">每天</option><option value="weekday">工作日</option></select>
+        <button class="btn primary" type="submit">添加</button>
+      </div>
+    </form>
+  </section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+/* ---------- utils ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (k, n) => { const d = parse(k); d.setDate(d.getDate()+n); return fmt(d); };
+const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 864e5);
+const mondayOf = k => addDays(k, -((parse(k).getDay()+6) % 7));
+const WD = ['日','一','二','三','四','五','六'];
+const STATUS = {todo:'未开始', doing:'进行中', done:'已完成'};
+const NEXT = {todo:'doing', doing:'done', done:'todo'};
+const COLORS = ['c1','c2','c3','c4','c5','c6'];
+const DEFAULT_CATS = [
+  {id:'work', name:'工作', color:'c1'}, {id:'life', name:'个人', color:'c2'},
+  {id:'study', name:'学习', color:'c3'}, {id:'health', name:'健康', color:'c4'}];
+const DEFAULTS = {refreshTime:'04:00', lastRollover:null, categories:DEFAULT_CATS};
+const isoWeek = k => { const d = parse(k); d.setDate(d.getDate() + 3 - (d.getDay()+6)%7);
+  const w1 = new Date(d.getFullYear(), 0, 4); return 1 + Math.round(((d - w1)/864e5 - 3 + (w1.getDay()+6)%7) / 7); };
+const hm = ts => { const d = new Date(ts); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const stamp = ts => { const d = new Date(ts); return `${d.getMonth()+1}/${d.getDate()} ${hm(ts)}`; };
+const dayLabel = k => { const d = parse(k); return `${d.getMonth()+1}月${d.getDate()}日 周${WD[d.getDay()]}`; };
+
+/* ---------- state ---------- */
+let db = null;
+const clientId = Math.random().toString(36).slice(2);
+const S = {
+  tasks: [], routines: [], settings: {...DEFAULTS}, settingsExists: false,
+  settingsLoaded: false, tasksLoaded: false, noDb: false, loading: true,
+  view: 'today', filter: 'all', open: null, confirmDel: null, drafts: {},
+  journal: [], journalKey: null, journalUnsub: null,
+  cal: {mode:'month', anchor:null, sel:null, fetched:[], selNotes:[], key:null},
+  arch: [], archFilter: 'all', archLoaded: false, rolling: false
+};
+try { const v = localStorage.getItem('rcb-view'); if (v) S.view = v; } catch {}
+
+const refreshMin = () => { const [h,m] = (S.settings.refreshTime || '04:00').split(':').map(Number); return (h||0)*60 + (m||0); };
+const today = () => fmt(new Date(Date.now() - refreshMin()*6e4));
+const cats = () => (S.settings.categories && S.settings.categories.length) ? S.settings.categories : DEFAULT_CATS;
+const catOf = id => cats().find(c => c.id === id) || {id:'', name:'未分类', color:'c6'};
+const findTask = id => S.tasks.find(t => t.id === id);
+
+function toast(msg) { const el = $('#toast'); el.textContent = msg; el.classList.add('on');
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2600); }
+function errMsg(e) {
+  const c = e && e.code;
+  if (c === 'quota_exceeded') return '存储已满：请在归档里删除一些旧任务';
+  if (c === 'invalid_argument') return '没有保存权限，或内容格式不对';
+  if (c === 'resource_exhausted') return '操作太快了，稍等几秒再试';
+  return '保存失败，请检查网络后再试';
+}
+async function safe(fn) { try { return await fn(); } catch (e) { console.error(e); toast(errMsg(e)); } }
+
+/* ---------- data writes ---------- */
+const tref = id => db.doc('tasks/' + id);
+function newTask({title, cat, date, kind='once', routineId=null}) {
+  return {title, cat, kind, routineId, date, originDate: date, status: 'todo',
+    progress: [], notes: [], createdAt: Date.now(), doneAt: null, archived: false};
+}
+async function addTask(o, id) {
+  const data = newTask(o);
+  if (id) await tref(id).set(data); else await db.collection('tasks').add(data);
+}
+const updTask = (id, patch) => safe(() => tref(id).update(patch));
+async function saveSettings(patch) {
+  const ref = db.doc('meta/settings');
+  if (S.settingsExists) await ref.update(patch);
+  else await ref.set({...DEFAULTS, ...S.settings, ...patch});
+}
+const routineInstanceId = (rid, day) => `r-${rid}-${day}`;
+async function genRoutine(r, day) {
+  if (!r.active || !(r.days || []).includes(parse(day).getDay())) return;
+  const id = routineInstanceId(r.id, day);
+  const snap = await tref(id).get();
+  if (!snap.exists) await addTask({title: r.title, cat: r.cat, date: day, kind: 'daily', routineId: r.id}, id);
+}
+
+/* ---------- daily rollover ---------- */
+async function rollover() {
+  if (S.rolling || !db) return;
+  const day = today();
+  S.rolling = true;
+  try {
+    const lock = await db.doc('meta/lock').acquire({holder: clientId, ttlMs: 60000});
+    if (!lock.acquired) return;               // another device is doing it
+    const sSnap = await db.doc('meta/settings').get();
+    const cur = sSnap.exists ? sSnap.data() : null;
+    if (cur && cur.lastRollover && cur.lastRollover >= day) return;
+    const snap = await db.collection('tasks').where('archived', '==', false).get();
+    for (const d of snap.docs) {
+      const t = d.data();
+      if (!t.date || t.date >= day) continue;  // today or planned for later
+      if (t.status === 'done') await tref(d.id).update({archived: true});
+      else if (t.kind === 'daily') await tref(d.id).update({archived: true, missed: true});
+      else await tref(d.id).update({date: day});   // carry over; originDate keeps the delay count
+    }
+    const rs = await db.collection('routines').get();
+    for (const r of rs.docs) await genRoutine({id: r.id, ...r.data()}, day);
+    if (cur) await db.doc('meta/settings').update({lastRollover: day});
+    else await db.doc('meta/settings').set({...DEFAULTS, ...S.settings, lastRollover: day});
+  } catch (e) { console.error(e); toast('每日刷新没有完成，稍后会自动重试'); }
+  finally { S.rolling = false; }
+}
+function maybeRoll() {
+  if (!db || !S.settingsLoaded || !S.tasksLoaded) return;
+  const day = today();
+  if (S.journalKey !== day) watchJournal(day);
+  if (!S.settings.lastRollover || S.settings.lastRollover < day) setTimeout(rollover, 50);
+}
+async function tidyNow() {
+  const done = S.tasks.filter(t => t.status === 'done');
+  if (!done.length) return toast('没有需要归档的已完成任务');
+  await safe(async () => { for (const t of done) await tref(t.id).update({archived: true}); toast(`已归档 ${done.length} 项`); });
+}
+
+/* ---------- journal (free notes per day) ---------- */
+function watchJournal(day) {
+  if (S.journalUnsub) S.journalUnsub();
+  S.journalKey = day; S.journal = [];
+  S.journalUnsub = db.doc('journal/' + day).onSnapshot(s => {
+    S.journal = s.exists ? (s.data().notes || []) : []; render();
+  }, e => console.error(e));
+}
+async function addJournal(text) {
+  const day = today(); const notes = [...S.journal, {t: Date.now(), text}];
+  await db.doc('journal/' + day).set({notes});
+}
+
+/* ---------- rendering ---------- */
+function catOptions(sel) {
+  return cats().map(c => `<option value="${esc(c.id)}"${c.id === sel ? ' selected' : ''}>${esc(c.name)}</option>`).join('');
+}
+function fillSelect(el) { const v = el.value; el.innerHTML = catOptions(v || cats()[0].id); if (v && cats().some(c => c.id === v)) el.value = v; }
+
+function render() {
+  const a = document.activeElement, aid = a && a.id;
+  let s0 = null, s1 = null; try { s0 = a.selectionStart; s1 = a.selectionEnd; } catch {}
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-current', String(b.dataset.v === S.view)));
+  for (const v of ['today','cal','arch','set']) $('#v-' + v).hidden = S.view !== v;
+  $('#banner-wrap').innerHTML = S.noDb
+    ? '<div class="banner">这个页面需要在 claude.ai 登录后打开，才能保存和同步你的任务。</div>' : '';
+  ['#qa-cat', '#ra-cat'].forEach(s => fillSelect($(s)));
+  if (S.view === 'today') renderToday();
+  if (S.view === 'cal') renderCal();
+  if (S.view === 'arch') renderArch();
+  if (S.view === 'set') renderSet();
+  if (aid && document.getElementById(aid) && document.getElementById(aid) !== a) {
+    const el = document.getElementById(aid); el.focus();
+    try { if (s0 != null) el.setSelectionRange(s0, s1); } catch {}
+  }
+}
+
+const ORDER = {doing: 0, todo: 1, done: 2};
+const byState = (a, b) => (ORDER[a.status] - ORDER[b.status]) || ((a.createdAt||0) - (b.createdAt||0));
+
+function renderToday() {
+  const td = today();
+  const all = S.tasks.filter(t => t.date <= td);
+  const done = all.filter(t => t.status === 'done').length;
+  const pct = all.length ? Math.round(done / all.length * 100) : 0;
+  $('#dayhead').innerHTML = `
+    <h1>${dayLabel(td)}</h1>
+    <div class="sub"><span>第 <span class="num">${isoWeek(td)}</span> 周</span>
+      <span>已完成 <span class="num">${done}/${all.length}</span></span>
+      <span>每天 <span class="num">${esc(S.settings.refreshTime || '04:00')}</span> 开始新的一天</span></div>
+    <div class="bar"><i style="width:${pct}%"></i></div>`;
+
+  const counts = {}; all.forEach(t => counts[t.cat] = (counts[t.cat]||0) + 1);
+  $('#catfilter').innerHTML = `<button class="chip" data-act="filter" data-c="all" aria-pressed="${S.filter==='all'}">全部 <span class="num">${all.length}</span></button>` +
+    cats().map(c => `<button class="chip" data-act="filter" data-c="${esc(c.id)}" aria-pressed="${S.filter===c.id}"><i class="dot" style="background:var(--${c.color})"></i>${esc(c.name)} <span class="num">${counts[c.id]||0}</span></button>`).join('');
+
+  const list = all.filter(t => S.filter === 'all' || t.cat === S.filter);
+  const daily = list.filter(t => t.kind === 'daily').sort(byState);
+  const once = list.filter(t => t.kind !== 'daily').sort(byState);
+  let html = '';
+  if (S.loading && !S.noDb) html = '<div class="list"><div class="empty">正在载入任务…</div></div>';
+  else if (!list.length) html = `<div class="list"><div class="empty">${all.length ? '这个分类今天没有任务。' : '今天还没有任务。在上方输入框写下第一件事，回车即可添加。'}</div></div>`;
+  else {
+    if (daily.length) html += `<h2 class="sec">日常 <span class="num">${daily.filter(t=>t.status==='done').length}/${daily.length}</span></h2><div class="list">${daily.map(taskRow).join('')}</div>`;
+    if (once.length) html += `<h2 class="sec">待办 <span class="num">${once.filter(t=>t.status==='done').length}/${once.length}</span></h2><div class="list">${once.map(taskRow).join('')}</div>`;
+  }
+  $('#today-list').innerHTML = html;
+
+  const notes = [...S.journal].sort((a, b) => b.t - a.t);
+  $('#today-notes').innerHTML = notes.length
+    ? `<div class="list"><ul class="notes">${notes.map(n => `<li><time>${hm(n.t)}</time><span>${esc(n.text)}</span><button class="x" data-act="deljournal" data-t="${n.t}" aria-label="删除笔记">删除</button></li>`).join('')}</ul></div>` : '';
+
+  const fut = S.tasks.filter(t => t.date > td).sort((a, b) => a.date.localeCompare(b.date));
+  const groups = {}; fut.forEach(t => (groups[t.date] = groups[t.date] || []).push(t));
+  const keys = Object.keys(groups);
+  $('#upcoming').innerHTML = keys.length ? `<h2 class="sec">之后的安排</h2><div class="list">${keys.map(k => {
+    const n = diffDays(td, k); const lab = n === 1 ? '明天' : dayLabel(k);
+    return `<div class="up"><span class="d">${lab}</span><div class="items">${groups[k].map(t => `<span><i class="dot" style="background:var(--${catOf(t.cat).color})"></i>${esc(t.title)}</span>`).join('')}</div></div>`;
+  }).join('')}</div>` : '';
+}
+
+function taskRow(t) {
+  const c = catOf(t.cat); const td = today();
+  const carried = t.kind !== 'daily' && t.originDate && t.originDate < t.date ? diffDays(t.originDate, t.date) : 0;
+  const last = (t.progress || []).slice(-1)[0];
+  const open = S.open && S.open.id === t.id;
+  const mode = open ? S.open.mode : null;
+  return `<div class="task st-${t.status}" data-id="${esc(t.id)}">
+    <button class="chk" style="--cc:var(--${c.color})" data-act="toggle" aria-label="${t.status==='done'?'标记为未完成':'标记为完成'}"></button>
+    <div class="tbody">
+      <button class="ttitle" data-act="expand">${esc(t.title)}</button>
+      <div class="tmeta">
+        <span>${esc(c.name)}${t.kind==='daily' ? ' · 日常' : ''}</span>
+        <button class="pill ${t.status}" data-act="cycle" title="点击切换状态">${STATUS[t.status]}</button>
+        ${carried ? `<span class="carry">已顺延 <span class="num">${carried}</span> 天</span>` : ''}
+        ${t.date > td ? `<span>${dayLabel(t.date)}</span>` : ''}
+        ${last && !open ? `<span class="latest">↳ ${esc(last.text)}</span>` : ''}
+      </div>
+    </div>
+    <div class="tacts">
+      <button data-act="open" data-m="progress" aria-pressed="${mode==='progress'}">进展</button>
+      <button data-act="open" data-m="note" aria-pressed="${mode==='note'}">笔记</button>
+    </div>
+    ${open ? detail(t, mode) : ''}
+  </div>`;
+}
+
+function detail(t, mode) {
+  const inId = 'in-' + t.id;
+  const items = [...(t.progress||[]).map(x => ({...x, k:'p'})), ...(t.notes||[]).map(x => ({...x, k:'n'}))].sort((a, b) => b.t - a.t);
+  const conf = S.confirmDel === t.id;
+  const v = k => esc(S.drafts[k + t.id] ?? '');
+  return `<div class="detail">
+    <div class="entry">
+      <div class="seg"><button data-act="open" data-m="progress" aria-pressed="${mode==='progress'}">进展</button><button data-act="open" data-m="note" aria-pressed="${mode==='note'}">笔记</button></div>
+      <input class="field" id="${esc(inId)}" data-draft data-entry="${esc(t.id)}" value="${v('in-')}" placeholder="${mode==='progress' ? '这次推进了什么？回车保存' : '写点备注，回车保存'}" aria-label="${mode==='progress'?'进展':'笔记'}">
+      <button class="btn" data-act="entry">保存</button>
+    </div>
+    ${items.length ? `<ul class="tl">${items.map(x => `<li><time>${stamp(x.t)}</time><span><span class="k ${x.k}">${x.k==='p'?'进展':'笔记'}</span>${esc(x.text)}</span></li>`).join('')}</ul>` : '<p class="hint" style="margin:0">还没有进展或笔记。</p>'}
+    <div class="edit">
+      <input class="field" id="ed-title-${esc(t.id)}" data-draft value="${S.drafts['ed-title-' + t.id] != null ? v('ed-title-') : esc(t.title)}" aria-label="标题">
+      <select id="ed-cat-${esc(t.id)}" aria-label="分类">${catOptions(t.cat)}</select>
+      ${t.kind === 'daily' ? '' : `<input type="date" id="ed-date-${esc(t.id)}" value="${esc(t.date)}" aria-label="日期">`}
+      <button class="btn" data-act="saveedit">保存修改</button>
+      <button class="btn ${conf ? 'danger' : 'ghost'}" data-act="del">${conf ? '确认删除' : '删除'}</button>
+    </div>
+  </div>`;
+}
+
+/* calendar */
+function calRange() {
+  const a = S.cal.anchor || today();
+  if (S.cal.mode === 'week') { const s = mondayOf(a); return [s, addDays(s, 6)]; }
+  const d = parse(a); const s = mondayOf(fmt(new Date(d.getFullYear(), d.getMonth(), 1)));
+  return [s, addDays(s, 41)];
+}
+async function loadCal() {
+  if (!db) return;
+  const [s, e] = calRange(); const key = s + e; S.cal.key = key;
+  try {
+    const snap = await db.collection('tasks').where('date', '>=', s).where('date', '<=', e).get();
+    if (S.cal.key !== key) return;
+    S.cal.fetched = snap.docs.map(d => ({id: d.id, ...d.data()}));
+    render();
+  } catch (err) { console.error(err); }
+}
+function calTasks() {
+  const m = new Map(S.cal.fetched.filter(t => t.archived).map(t => [t.id, t]));
+  S.tasks.forEach(t => m.set(t.id, t));
+  const by = {}; m.forEach(t => (by[t.date] = by[t.date] || []).push(t));
+  Object.values(by).forEach(a => a.sort(byState));
+  return by;
+}
+function renderCal() {
+  const td = today(); const a = S.cal.anchor || td; const [s] = calRange();
+  const week = S.cal.mode === 'week'; const n = week ? 7 : 42;
+  const ad = parse(a);
+  $('#cal-title').textContent = week ? `${parse(s).getMonth()+1}月${parse(s).getDate()}日 – ${parse(addDays(s,6)).getMonth()+1}月${parse(addDays(s,6)).getDate()}日`
+    : `${ad.getFullYear()}年${ad.getMonth()+1}月`;
+  document.querySelectorAll('#cal-mode button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === S.cal.mode)));
+  const by = calTasks(); const sel = S.cal.sel || td;
+  let h = ['一','二','三','四','五','六','日'].map(w => `<div class="wd">${w}</div>`).join('');
+  for (let i = 0; i < n; i++) {
+    const k = addDays(s, i); const d = parse(k); const items = by[k] || [];
+    const show = week ? items : items.slice(0, 3);
+    const out = !week && d.getMonth() !== ad.getMonth();
+    h += `<button class="cell${out?' out':''}${k===td?' today':''}${k===sel?' sel':''}" data-act="calsel" data-day="${k}" aria-label="${dayLabel(k)}，${items.length} 项">
+      <span class="dn">${d.getDate()}</span><span class="cis">${show.map(t => `<span class="ci${t.status==='done'?' done':''}"><i class="dot" style="background:var(--${catOf(t.cat).color})"></i><span>${esc(t.title)}</span></span>`).join('')}</span>
+      ${items.length > show.length ? `<span class="more">+${items.length - show.length}</span>` : ''}</button>`;
+  }
+  $('#cal-grid').innerHTML = `<div class="grid ${week?'week':'month'}">${h}</div>`;
+
+  const items = by[sel] || [];
+  const notes = sel === S.journalKey ? S.journal : S.cal.selNotes;
+  $('#cal-day').innerHTML = `<h2>${dayLabel(sel)}</h2>
+    <div class="list">${items.length ? items.map(t => `<div class="mini st-${t.status}${t.status==='done'?' done':''}" data-id="${esc(t.id)}">
+      ${t.archived ? `<i class="dot" style="background:var(--${catOf(t.cat).color})"></i>` : `<button class="chk" style="--cc:var(--${catOf(t.cat).color});width:18px;height:18px;margin:0" data-act="toggle" aria-label="切换完成"></button>`}
+      <span class="t">${esc(t.title)}</span><span class="m">${t.archived ? (t.missed ? '未完成 · 已归档' : '已归档') : STATUS[t.status]}</span></div>`).join('')
+      : '<div class="empty">这天没有任务。</div>'}</div>
+    ${notes.length ? `<h2 class="sec">当天笔记</h2><div class="list"><ul class="notes">${[...notes].sort((x,y)=>x.t-y.t).map(n => `<li><time>${hm(n.t)}</time><span>${esc(n.text)}</span><span></span></li>`).join('')}</ul></div>` : ''}
+    <form class="qa" id="cd" style="margin-top:10px" autocomplete="off">
+      <input type="text" id="cd-title" data-draft value="${esc(S.drafts['cd-title'] ?? '')}" placeholder="给 ${parse(sel).getMonth()+1}月${parse(sel).getDate()}日 添加任务" aria-label="任务标题">
+      <div class="opts"><select id="cd-cat" aria-label="分类">${catOptions(S.drafts['cd-cat'] || cats()[0].id)}</select><button class="btn primary" type="submit">添加</button></div>
+    </form>`;
+}
+async function selectDay(k) {
+  S.cal.sel = k; S.cal.selNotes = []; render();
+  if (k !== S.journalKey && db) {
+    try { const s = await db.doc('journal/' + k).get(); if (S.cal.sel === k) { S.cal.selNotes = s.exists ? (s.data().notes || []) : []; render(); } } catch {}
+  }
+}
+
+/* archive */
+async function loadArch() {
+  if (!db) return;
+  try {
+    const snap = await db.collection('tasks').where('archived', '==', true).orderBy('date', 'desc').limit(300).get();
+    S.arch = snap.docs.map(d => ({id: d.id, ...d.data()})); S.archLoaded = true; render();
+  } catch (e) { console.error(e); toast('归档载入失败'); }
+}
+function renderArch() {
+  const list = S.arch.filter(t => S.archFilter === 'all' || t.cat === S.archFilter);
+  $('#arch-filter').innerHTML = `<button class="chip" data-act="afilter" data-c="all" aria-pressed="${S.archFilter==='all'}">全部</button>` +
+    cats().map(c => `<button class="chip" data-act="afilter" data-c="${esc(c.id)}" aria-pressed="${S.archFilter===c.id}"><i class="dot" style="background:var(--${c.color})"></i>${esc(c.name)}</button>`).join('');
+  if (!S.archLoaded) { $('#arch-list').innerHTML = '<div class="list"><div class="empty">正在载入…</div></div>'; return; }
+  if (!list.length) { $('#arch-list').innerHTML = '<div class="list"><div class="empty">还没有归档的任务。完成的任务会在每天刷新时出现在这里。</div></div>'; return; }
+  const g = {}; list.forEach(t => (g[t.date] = g[t.date] || []).push(t));
+  $('#arch-list').innerHTML = Object.keys(g).map(k => `<div class="agrp"><h3>${dayLabel(k)} · <span class="num">${g[k].filter(t=>!t.missed).length}</span> 项完成</h3><div class="list">${g[k].map(t => `
+    <div class="mini${t.missed?'':' done'}" data-id="${esc(t.id)}"><i class="dot" style="background:var(--${catOf(t.cat).color})"></i>
+      <span class="t">${esc(t.title)}</span>
+      <span class="m">${t.missed ? '未完成' : (t.doneAt ? hm(t.doneAt) + ' 完成' : '完成')}${(t.progress||[]).length ? ` · ${(t.progress).length} 条进展` : ''}</span>
+      <button class="btn ghost" data-act="restore">恢复</button></div>`).join('')}</div></div>`).join('');
+}
+
+/* settings */
+function renderSet() {
+  const ti = $('#set-time'); if (document.activeElement !== ti) ti.value = S.settings.refreshTime || '04:00';
+  $('#set-cats').innerHTML = cats().map(c => `<div class="srow" data-cat="${esc(c.id)}">
+    <i class="dot" style="background:var(--${c.color});width:12px;height:12px"></i>
+    <input class="field" id="cat-name-${esc(c.id)}" data-draft data-catname="${esc(c.id)}" value="${esc(S.drafts['cat-name-' + c.id] ?? c.name)}" aria-label="分类名称">
+    <span class="sw">${COLORS.map(k => `<button style="background:var(--${k})" data-act="catcolor" data-k="${k}" aria-pressed="${c.color===k}" aria-label="颜色 ${k}"></button>`).join('')}</span>
+    <button class="btn ghost" data-act="delcat">删除</button></div>`).join('');
+  $('#set-routines').innerHTML = S.routines.length ? S.routines.slice().sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).map(r => `<div class="srow" data-rid="${esc(r.id)}">
+    <i class="dot" style="background:var(--${catOf(r.cat).color})"></i>
+    <span style="flex:1 1 160px;min-width:0">${esc(r.title)}</span>
+    <select data-rcat aria-label="分类">${catOptions(r.cat)}</select>
+    <span class="wdays">${[1,2,3,4,5,6,0].map(d => `<button data-act="rday" data-d="${d}" aria-pressed="${(r.days||[]).includes(d)}">${WD[d]}</button>`).join('')}</span>
+    <button class="btn ghost" data-act="delroutine">删除</button></div>`).join('')
+    : '<div class="empty">还没有日常任务。下面添加一条，或在“今天”添加任务时选择“每天”。</div>';
+}
+
+/* ---------- events ---------- */
+document.addEventListener('input', e => { if (e.target.dataset && 'draft' in e.target.dataset) S.drafts[e.target.id] = e.target.value; });
+$('#qa-when').addEventListener('change', e => { const p = e.target.value === 'pick'; $('#qa-date').hidden = !p; if (p) { $('#qa-date').value = addDays(today(), 1); } });
+
+$('#qa').addEventListener('submit', async e => {
+  e.preventDefault(); if (!db) return toast('需要登录 claude.ai 才能保存');
+  const title = $('#qa-title').value.trim(); if (!title) return;
+  const cat = $('#qa-cat').value, when = $('#qa-when').value, rep = $('#qa-repeat').value, td = today();
+  const date = when === 'today' ? td : when === 'tomorrow' ? addDays(td, 1) : ($('#qa-date').value || td);
+  $('#qa-title').value = '';
+  await safe(async () => {
+    if (rep !== 'none') {
+      const ref = db.collection('routines').doc();
+      const r = {title, cat, days: rep === 'daily' ? [0,1,2,3,4,5,6] : [1,2,3,4,5], active: true, createdAt: Date.now()};
+      await ref.set(r); await genRoutine({id: ref.id, ...r}, td);
+      toast('已添加为日常任务，每天自动出现');
+    } else await addTask({title, cat, date});
+  });
+});
+$('#qn').addEventListener('submit', async e => {
+  e.preventDefault(); if (!db) return;
+  const text = $('#qn-text').value.trim(); if (!text) return;
+  $('#qn-text').value = ''; await safe(() => addJournal(text));
+});
+$('#ra').addEventListener('submit', async e => {
+  e.preventDefault(); if (!db) return;
+  const title = $('#ra-title').value.trim(); if (!title) return;
+  const r = {title, cat: $('#ra-cat').value, days: $('#ra-days').value === 'daily' ? [0,1,2,3,4,5,6] : [1,2,3,4,5], active: true, createdAt: Date.now()};
+  $('#ra-title').value = '';
+  await safe(async () => { const ref = db.collection('routines').doc(); await ref.set(r); await genRoutine({id: ref.id, ...r}, today()); });
+});
+$('#set-time').addEventListener('change', e => { if (db && e.target.value) safe(() => saveSettings({refreshTime: e.target.value})).then(() => toast('刷新时间已保存')); });
+
+document.addEventListener('submit', async e => {
+  if (e.target.id !== 'cd') return; e.preventDefault(); if (!db) return;
+  const title = $('#cd-title').value.trim(); if (!title) return;
+  const cat = $('#cd-cat').value; S.drafts['cd-title'] = ''; S.drafts['cd-cat'] = cat; $('#cd-title').value = '';
+  const sel = S.cal.sel || today();
+  await safe(() => addTask({title, cat, date: sel < today() ? today() : sel}));
+  loadCal();
+});
+
+document.addEventListener('keydown', e => {
+  const el = e.target;
+  if (e.key === 'Enter' && el.dataset && el.dataset.entry) { e.preventDefault(); submitEntry(el.dataset.entry); }
+  if (e.key === 'Escape' && S.open) { S.open = null; render(); }
+});
+document.addEventListener('change', e => {
+  const el = e.target;
+  if (el.dataset && el.dataset.catname != null) {
+    const id = el.dataset.catname; const name = el.value.trim(); delete S.drafts[el.id];
+    if (name) safe(() => saveSettings({categories: cats().map(c => c.id === id ? {...c, name} : c)}));
+  }
+  if (el.hasAttribute && el.hasAttribute('data-rcat')) {
+    const rid = el.closest('[data-rid]').dataset.rid; safe(() => db.doc('routines/' + rid).update({cat: el.value}));
+  }
+  if (el.id === 'cd-cat') S.drafts['cd-cat'] = el.value;
+});
+
+async function submitEntry(id) {
+  const t = findTask(id); const inp = document.getElementById('in-' + id);
+  if (!t || !inp) return; const text = inp.value.trim(); if (!text) return;
+  const key = S.open && S.open.mode === 'note' ? 'notes' : 'progress';
+  const patch = {[key]: [...(t[key] || []), {t: Date.now(), text}]};
+  if (key === 'progress' && t.status === 'todo') patch.status = 'doing';
+  S.drafts['in-' + id] = ''; inp.value = '';
+  await updTask(id, patch);
+}
+
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act; const row = b.closest('[data-id]'); const id = row && row.dataset.id;
+  if (act === 'tab') {
+    S.view = b.dataset.v; try { localStorage.setItem('rcb-view', S.view); } catch {}
+    if (S.view === 'cal') loadCal(); if (S.view === 'arch') loadArch();
+    render(); return;
+  }
+  if (act === 'filter') { S.filter = b.dataset.c; render(); return; }
+  if (act === 'afilter') { S.archFilter = b.dataset.c; render(); return; }
+  if (!db) { toast('需要登录 claude.ai 才能保存'); return; }
+  const t = id && findTask(id); const td = today();
+  switch (act) {
+    case 'toggle':
+      if (!t) return;
+      if (t.status === 'done') updTask(id, {status: 'todo', doneAt: null});
+      else updTask(id, {status: 'done', doneAt: Date.now(), date: t.date > td ? td : t.date});
+      break;
+    case 'cycle': {
+      if (!t) return; const ns = NEXT[t.status];
+      updTask(id, ns === 'done' ? {status: ns, doneAt: Date.now(), date: t.date > td ? td : t.date} : {status: ns, doneAt: null});
+      break; }
+    case 'expand': S.open = S.open && S.open.id === id ? null : {id, mode: 'progress'}; S.confirmDel = null; render(); break;
+    case 'open': {
+      const m = b.dataset.m;
+      S.open = S.open && S.open.id === id && S.open.mode === m && b.closest('.tacts') ? null : {id, mode: m};
+      S.confirmDel = null; render();
+      const inp = document.getElementById('in-' + id); if (inp) inp.focus();
+      break; }
+    case 'entry': submitEntry(id); break;
+    case 'saveedit': {
+      if (!t) return;
+      const title = (document.getElementById('ed-title-' + id).value || '').trim() || t.title;
+      const cat = document.getElementById('ed-cat-' + id).value;
+      const dEl = document.getElementById('ed-date-' + id);
+      const patch = {title, cat};
+      if (dEl && dEl.value && dEl.value !== t.date) { patch.date = dEl.value; patch.originDate = dEl.value; }
+      delete S.drafts['ed-title-' + id];
+      await updTask(id, patch); toast('已保存'); break; }
+    case 'del':
+      if (S.confirmDel !== id) { S.confirmDel = id; render(); break; }
+      S.confirmDel = null; S.open = null; await safe(() => tref(id).delete()); toast('已删除'); break;
+    case 'deljournal': {
+      const ts = Number(b.dataset.t);
+      await safe(() => db.doc('journal/' + S.journalKey).set({notes: S.journal.filter(n => n.t !== ts)})); break; }
+    case 'tidy': tidyNow(); break;
+    case 'calmode': S.cal.mode = b.dataset.m; S.cal.anchor = S.cal.sel || td; loadCal(); render(); break;
+    case 'calnav': {
+      const d = Number(b.dataset.d); let a = S.cal.anchor || td;
+      if (d === 0) a = td;
+      else if (S.cal.mode === 'week') a = addDays(a, 7 * d);
+      else { const x = parse(a); a = fmt(new Date(x.getFullYear(), x.getMonth() + d, 1)); }
+      S.cal.anchor = a; if (d === 0) S.cal.sel = td; loadCal(); render(); break; }
+    case 'calsel': selectDay(b.dataset.day); break;
+    case 'restore':
+      await safe(() => tref(id).update({archived: false, missed: false, status: 'todo', doneAt: null, date: td, originDate: td}));
+      toast('已恢复到今天'); loadArch(); break;
+    case 'addcat': {
+      const used = cats().map(c => c.color); const color = COLORS.find(k => !used.includes(k)) || 'c6';
+      await safe(() => saveSettings({categories: [...cats(), {id: 'c' + Date.now().toString(36), name: '新分类', color}]})); break; }
+    case 'catcolor': {
+      const cid = b.closest('[data-cat]').dataset.cat;
+      await safe(() => saveSettings({categories: cats().map(c => c.id === cid ? {...c, color: b.dataset.k} : c)})); break; }
+    case 'delcat': {
+      const cid = b.closest('[data-cat]').dataset.cat;
+      if (cats().length <= 1) return toast('至少保留一个分类');
+      await safe(() => saveSettings({categories: cats().filter(c => c.id !== cid)})); break; }
+    case 'rday': {
+      const rid = b.closest('[data-rid]').dataset.rid; const r = S.routines.find(x => x.id === rid); if (!r) return;
+      const d = Number(b.dataset.d); const days = (r.days || []).includes(d) ? r.days.filter(x => x !== d) : [...(r.days || []), d];
+      await safe(() => db.doc('routines/' + rid).update({days})); break; }
+    case 'delroutine': {
+      const rid = b.closest('[data-rid]').dataset.rid;
+      await safe(() => db.doc('routines/' + rid).delete()); toast('已删除。今天已生成的那一条保留在列表里'); break; }
+  }
+});
+
+/* ---------- boot ---------- */
+render();
+(async () => {
+  db = window.claude && window.claude.use ? await window.claude.use('db') : null;
+  if (!db) { S.noDb = true; S.loading = false; render(); return; }
+  const onErr = e => { console.error(e); if (e && e.code !== 'revoked') toast('同步中断，请刷新页面'); };
+  db.doc('meta/settings').onSnapshot(s => {
+    S.settingsExists = s.exists; S.settings = {...DEFAULTS, ...(s.exists ? s.data() : {})};
+    S.settingsLoaded = true; render(); maybeRoll();
+  }, onErr);
+  db.collection('tasks').where('archived', '==', false).onSnapshot(s => {
+    S.tasks = s.docs.map(d => ({id: d.id, ...d.data()})); S.tasksLoaded = true; S.loading = false;
+    if (S.open && !findTask(S.open.id)) S.open = null;
+    render(); maybeRoll();
+  }, onErr);
+  db.collection('routines').onSnapshot(s => { S.routines = s.docs.map(d => ({id: d.id, ...d.data()})); render(); }, onErr);
+  if (S.view === 'cal') loadCal(); if (S.view === 'arch') loadArch();
+  setInterval(maybeRoll, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) maybeRoll(); });
+})();
+})();
+</script>
+
+</body></html>
