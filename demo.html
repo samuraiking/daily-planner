@@ -173,15 +173,26 @@ h2.sec .num{letter-spacing:0}
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:8px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:calc(100% - 32px)}
 #toast.on{opacity:1}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* collapsible history */
+.hist{margin-top:4px;font-size:13px;min-width:0}
+.hist summary{cursor:pointer;color:var(--muted);list-style:none;display:flex;gap:6px;align-items:baseline;min-width:0;border-radius:5px;padding:1px 0}
+.hist summary::-webkit-details-marker{display:none}
+.hist summary::before{content:"";flex:none;width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;transform:translateY(-1px);transition:transform .15s}
+.hist[open] summary::before{transform:rotate(90deg)}
+.hist summary .cnt{flex:none;font-size:12px}
+.hist summary .lt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist[open] summary .lt{display:none}
+.hist .tl{margin:6px 0 2px;padding-left:12px;border-left:2px solid var(--line)}
 </style>
 
 <header class="top"><div class="wrap">
-  <span class="brand">日程本</span>
-  <nav class="tabs" aria-label="视图">
-    <button data-act="tab" data-v="today">今天</button>
-    <button data-act="tab" data-v="cal">日历</button>
-    <button data-act="tab" data-v="arch">归档</button>
-    <button data-act="tab" data-v="set">设置</button>
+  <span class="brand" data-i18n="brand">日程本</span>
+  <nav class="tabs" data-i18n-aria="views">
+    <button data-act="tab" data-v="today" data-i18n="tabToday">今天</button>
+    <button data-act="tab" data-v="cal" data-i18n="tabCal">日历</button>
+    <button data-act="tab" data-v="arch" data-i18n="tabArch">归档</button>
+    <button data-act="tab" data-v="set" data-i18n="tabSet">设置</button>
   </nav>
 </div></header>
 
@@ -191,25 +202,25 @@ h2.sec .num{letter-spacing:0}
   <section id="v-today" class="wrap">
     <div class="dayhead" id="dayhead"></div>
     <form class="qa" id="qa" autocomplete="off">
-      <input type="text" id="qa-title" placeholder="添加任务，回车保存" aria-label="任务标题">
+      <input type="text" id="qa-title" data-i18n-ph="qaPh" data-i18n-aria="taskTitle">
       <div class="opts">
-        <select id="qa-cat" aria-label="分类"></select>
-        <select id="qa-when" aria-label="日期">
-          <option value="today">今天</option><option value="tomorrow">明天</option><option value="pick">选日期…</option>
+        <select id="qa-cat" data-i18n-aria="category"></select>
+        <select id="qa-when" data-i18n-aria="date">
+          <option value="today" data-i18n="today">今天</option><option value="tomorrow" data-i18n="tomorrow">明天</option><option value="pick" data-i18n="pickDate">选日期…</option>
         </select>
-        <input type="date" id="qa-date" hidden aria-label="选择日期">
-        <select id="qa-repeat" aria-label="重复">
-          <option value="none">不重复</option><option value="daily">每天</option><option value="weekday">工作日</option>
+        <input type="date" id="qa-date" hidden data-i18n-aria="date">
+        <select id="qa-repeat" data-i18n-aria="repeat">
+          <option value="none" data-i18n="repNone">不重复</option><option value="daily" data-i18n="repDaily">每天</option><option value="weekday" data-i18n="repWeekday">工作日</option>
         </select>
-        <button class="btn primary" type="submit">添加</button>
+        <button class="btn primary" type="submit" data-i18n="add">添加</button>
       </div>
     </form>
     <div class="chips" id="catfilter"></div>
     <div id="today-list"></div>
-    <h2 class="sec">随手记</h2>
+    <h2 class="sec" data-i18n="secNotes">随手记</h2>
     <form class="qn" id="qn" autocomplete="off">
-      <input class="field" id="qn-text" placeholder="记一笔，回车保存" aria-label="笔记">
-      <button class="btn" type="submit">保存</button>
+      <input class="field" id="qn-text" data-i18n-ph="qnPh" data-i18n-aria="note">
+      <button class="btn" type="submit" data-i18n="save">保存</button>
     </form>
     <div id="today-notes"></div>
     <div id="upcoming"></div>
@@ -219,42 +230,50 @@ h2.sec .num{letter-spacing:0}
     <div class="calbar">
       <h1 id="cal-title"></h1>
       <div class="seg" id="cal-mode">
-        <button data-act="calmode" data-m="month">月</button><button data-act="calmode" data-m="week">周</button>
+        <button data-act="calmode" data-m="month" data-i18n="month">月</button><button data-act="calmode" data-m="week" data-i18n="week">周</button>
       </div>
-      <button class="btn" data-act="calnav" data-d="-1" aria-label="上一页">‹</button>
-      <button class="btn" data-act="calnav" data-d="0">今天</button>
-      <button class="btn" data-act="calnav" data-d="1" aria-label="下一页">›</button>
+      <button class="btn" data-act="calnav" data-d="-1" data-i18n-aria="prev">‹</button>
+      <button class="btn" data-act="calnav" data-d="0" data-i18n="today">今天</button>
+      <button class="btn" data-act="calnav" data-d="1" data-i18n-aria="next">›</button>
     </div>
     <div id="cal-grid"></div>
     <div class="dayp" id="cal-day"></div>
   </section>
 
   <section id="v-arch" class="wrap" hidden>
-    <div class="dayhead"><h1>归档</h1><div class="sub">每天刷新时，已完成的任务和没做完的日常任务会移到这里。</div></div>
+    <div class="dayhead"><h1 data-i18n="tabArch">归档</h1><div class="sub" data-i18n="archSub"></div></div>
     <div class="chips" id="arch-filter"></div>
     <div id="arch-list"></div>
   </section>
 
   <section id="v-set" class="wrap" hidden>
-    <div class="dayhead"><h1>设置</h1></div>
-    <h2 class="sec">每日刷新</h2>
+    <div class="dayhead"><h1 data-i18n="tabSet">设置</h1></div>
+    <h2 class="sec" data-i18n="setLang">语言</h2>
     <div class="list"><div class="srow">
-      <label for="set-time">每天几点开始新的一天</label>
-      <input type="time" id="set-time" step="900">
-      <button class="btn" data-act="tidy">立即归档已完成</button>
+      <label for="set-lang" data-i18n="setLangLabel">界面语言</label>
+      <select id="set-lang">
+        <option value="zh">中文</option>
+        <option value="en">English</option>
+      </select>
     </div></div>
-    <p class="hint">到点后：已完成任务归档，没完成的待办顺延到新一天，日常任务重新生成。设备不在线时，下次打开页面会自动补上。</p>
-    <h2 class="sec">分类</h2>
+    <h2 class="sec" data-i18n="setRefresh">每日刷新</h2>
+    <div class="list"><div class="srow">
+      <label for="set-time" data-i18n="setRefreshLabel">每天几点开始新的一天</label>
+      <input type="time" id="set-time" step="900">
+      <button class="btn" data-act="tidy" data-i18n="tidy">立即归档已完成</button>
+    </div></div>
+    <p class="hint" data-i18n="setHint"></p>
+    <h2 class="sec" data-i18n="setCats">分类</h2>
     <div class="list" id="set-cats"></div>
-    <p><button class="btn" data-act="addcat">＋ 新分类</button></p>
-    <h2 class="sec">日常任务</h2>
+    <p><button class="btn" data-act="addcat" data-i18n="addCat">＋ 新分类</button></p>
+    <h2 class="sec" data-i18n="setRoutines">日常任务</h2>
     <div class="list" id="set-routines"></div>
     <form class="qa" id="ra" style="margin-top:8px" autocomplete="off">
-      <input type="text" id="ra-title" placeholder="新的日常任务，如：晨间计划 15 分钟" aria-label="日常任务标题">
+      <input type="text" id="ra-title" data-i18n-ph="raPh" data-i18n-aria="taskTitle">
       <div class="opts">
-        <select id="ra-cat" aria-label="分类"></select>
-        <select id="ra-days" aria-label="重复"><option value="daily">每天</option><option value="weekday">工作日</option></select>
-        <button class="btn primary" type="submit">添加</button>
+        <select id="ra-cat" data-i18n-aria="category"></select>
+        <select id="ra-days" data-i18n-aria="repeat"><option value="daily" data-i18n="repDaily">每天</option><option value="weekday" data-i18n="repWeekday">工作日</option></select>
+        <button class="btn primary" type="submit" data-i18n="add">添加</button>
       </div>
     </form>
   </section>
@@ -263,6 +282,81 @@ h2.sec .num{letter-spacing:0}
 
 <script>
 (() => {
+/* ---------- i18n ---------- */
+const I18N = {
+  zh: {
+    brand:'日程本', views:'视图', tabToday:'今天', tabCal:'日历', tabArch:'归档', tabSet:'设置',
+    noDb:'这个页面需要在 claude.ai 登录后打开，才能保存和同步你的任务。',
+    qaPh:'添加任务，回车保存', taskTitle:'任务标题', category:'分类', date:'日期', repeat:'重复', title:'标题',
+    today:'今天', tomorrow:'明天', pickDate:'选日期…', repNone:'不重复', repDaily:'每天', repWeekday:'工作日',
+    add:'添加', save:'保存', secNotes:'随手记', qnPh:'记一笔，回车保存', note:'笔记', progress:'进展',
+    weekN:'第 {n} 周', doneOf:'已完成 {a}', refreshAt:'每天 {t} 开始新的一天', all:'全部',
+    loading:'正在载入任务…', emptyCat:'这个分类今天没有任务。',
+    emptyToday:'今天还没有任务。在上方输入框写下第一件事，回车即可添加。',
+    secDaily:'日常', secTodo:'待办', secUpcoming:'之后的安排', dailyTag:'日常',
+    st_todo:'未开始', st_doing:'进行中', st_done:'已完成', cycleTitle:'点击切换状态',
+    markDone:'标记为完成', markUndone:'标记为未完成', toggleDone:'切换完成',
+    carried:'已顺延 {n} 天', histP:'进展 {n}', histN:'笔记 {n}', histN1:'笔记 1', latest:'最新：{x}',
+    phProgress:'这次推进了什么？回车保存', phNote:'写点备注，回车保存',
+    saveEdit:'保存修改', del:'删除', confirmDel:'确认删除', delNote:'删除笔记',
+    month:'月', week:'周', prev:'上一页', next:'下一页', calItems:'{d}，{n} 项',
+    calEmpty:'这天没有任务。', archMissed:'未完成 · 已归档', archived:'已归档', dayNotes:'当天笔记', cdPh:'给 {d} 添加任务',
+    archSub:'每天刷新时，已完成的任务和没做完的日常任务会移到这里。', archCount:'{n} 项完成',
+    archEmpty:'还没有归档的任务。完成的任务会在每天刷新时出现在这里。', archLoading:'正在载入…',
+    missed:'未完成', doneAt:'{t} 完成', doneShort:'完成', updates:'{n} 条进展', restore:'恢复',
+    setLang:'语言', setLangLabel:'界面语言', setRefresh:'每日刷新', setRefreshLabel:'每天几点开始新的一天', tidy:'立即归档已完成',
+    setHint:'到点后：已完成任务归档，没完成的待办顺延到新一天，日常任务重新生成。设备不在线时，下次打开页面会自动补上。',
+    setCats:'分类', addCat:'＋ 新分类', newCat:'新分类', catName:'分类名称', color:'颜色',
+    setRoutines:'日常任务', raPh:'新的日常任务，如：晨间计划 15 分钟',
+    routinesEmpty:'还没有日常任务。下面添加一条，或在“今天”添加任务时选择“每天”。',
+    t_needLogin:'需要登录 claude.ai 才能保存', t_routineAdded:'已添加为日常任务，每天自动出现', t_refreshSaved:'刷新时间已保存',
+    t_saved:'已保存', t_deleted:'已删除', t_noneToArchive:'没有需要归档的已完成任务', t_archivedN:'已归档 {n} 项',
+    t_restored:'已恢复到今天', t_keepOneCat:'至少保留一个分类', t_routineDeleted:'已删除。今天已生成的那一条保留在列表里',
+    t_rollFail:'每日刷新没有完成，稍后会自动重试', t_syncBroken:'同步中断，请刷新页面', t_archFail:'归档载入失败',
+    t_langSaved:'已切换为中文',
+    e_quota:'存储已满：请在归档里删除一些旧任务', e_perm:'没有保存权限，或内容格式不对',
+    e_rate:'操作太快了，稍等几秒再试', e_generic:'保存失败，请检查网络后再试',
+    uncategorized:'未分类', cat_work:'工作', cat_life:'个人', cat_study:'学习', cat_health:'健康'
+  },
+  en: {
+    brand:'Daily Planner', views:'Views', tabToday:'Today', tabCal:'Calendar', tabArch:'Archive', tabSet:'Settings',
+    noDb:'Sign in to claude.ai and open this page there to save and sync your tasks.',
+    qaPh:'Add a task, press Enter', taskTitle:'Task title', category:'Category', date:'Date', repeat:'Repeat', title:'Title',
+    today:'Today', tomorrow:'Tomorrow', pickDate:'Pick a date…', repNone:'Once', repDaily:'Every day', repWeekday:'Weekdays',
+    add:'Add', save:'Save', secNotes:'Quick notes', qnPh:'Jot a note, press Enter', note:'Note', progress:'Progress',
+    weekN:'Week {n}', doneOf:'Done {a}', refreshAt:'New day starts at {t}', all:'All',
+    loading:'Loading tasks…', emptyCat:'No tasks in this category today.',
+    emptyToday:'Nothing planned yet. Type your first task above and press Enter.',
+    secDaily:'DAILY', secTodo:'TO-DO', secUpcoming:'COMING UP', dailyTag:'Daily',
+    st_todo:'Not started', st_doing:'In progress', st_done:'Done', cycleTitle:'Click to change status',
+    markDone:'Mark as done', markUndone:'Mark as not done', toggleDone:'Toggle done',
+    carried:'Carried over {n}d', histP:'{n} progress', histN:'{n} notes', histN1:'1 note', latest:'Latest: {x}',
+    phProgress:'What moved forward? Press Enter', phNote:'Add a note, press Enter',
+    saveEdit:'Save changes', del:'Delete', confirmDel:'Confirm delete', delNote:'Delete note',
+    month:'Month', week:'Week', prev:'Previous', next:'Next', calItems:'{d}, {n} items',
+    calEmpty:'Nothing on this day.', archMissed:'Not done · archived', archived:'Archived', dayNotes:'NOTES', cdPh:'Add a task for {d}',
+    archSub:'At each daily refresh, finished tasks and unfinished daily tasks move here.', archCount:'{n} done',
+    archEmpty:'Nothing archived yet. Finished tasks move here at each daily refresh.', archLoading:'Loading…',
+    missed:'Not done', doneAt:'Done {t}', doneShort:'Done', updates:'{n} updates', restore:'Restore',
+    setLang:'LANGUAGE', setLangLabel:'Display language', setRefresh:'DAILY REFRESH', setRefreshLabel:'New day starts at', tidy:'Archive finished now',
+    setHint:'At refresh time, finished tasks are archived, unfinished to-dos carry over to the new day, and daily tasks are created again. If no device is online, it catches up the next time you open the page.',
+    setCats:'CATEGORIES', addCat:'+ New category', newCat:'New category', catName:'Category name', color:'Color',
+    setRoutines:'DAILY TASKS', raPh:'New daily task, e.g. 15-minute morning plan',
+    routinesEmpty:'No daily tasks yet. Add one below, or choose "Every day" when adding a task on Today.',
+    t_needLogin:'Sign in to claude.ai to save', t_routineAdded:'Added as a daily task. It will appear every day', t_refreshSaved:'Refresh time saved',
+    t_saved:'Saved', t_deleted:'Deleted', t_noneToArchive:'No finished tasks to archive', t_archivedN:'Archived {n}',
+    t_restored:'Moved back to today', t_keepOneCat:'Keep at least one category', t_routineDeleted:"Deleted. Today's copy stays on your list",
+    t_rollFail:"Daily refresh didn't finish. It will retry shortly", t_syncBroken:'Sync stopped. Reload the page', t_archFail:"Couldn't load the archive",
+    t_langSaved:'Switched to English',
+    e_quota:'Storage is full. Delete some old archived tasks', e_perm:"You don't have permission to save, or the content is invalid",
+    e_rate:'Too many changes at once. Wait a few seconds', e_generic:"Couldn't save. Check your connection and try again",
+    uncategorized:'Uncategorized', cat_work:'Work', cat_life:'Personal', cat_study:'Study', cat_health:'Health'
+  }
+};
+let LANG = 'zh';
+try { const l = localStorage.getItem('rcb-lang'); if (l && I18N[l]) LANG = l; } catch {}
+const t = (k, v = {}) => (I18N[LANG][k] ?? I18N.zh[k] ?? k).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? '');
+
 /* ---------- utils ---------- */
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -272,8 +366,10 @@ const parse = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y
 const addDays = (k, n) => { const d = parse(k); d.setDate(d.getDate()+n); return fmt(d); };
 const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 864e5);
 const mondayOf = k => addDays(k, -((parse(k).getDay()+6) % 7));
-const WD = ['日','一','二','三','四','五','六'];
-const STATUS = {todo:'未开始', doing:'进行中', done:'已完成'};
+const WD = {zh:['日','一','二','三','四','五','六'], en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat']};
+const WD2 = {zh:WD.zh, en:['Su','Mo','Tu','We','Th','Fr','Sa']};
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const NEXT = {todo:'doing', doing:'done', done:'todo'};
 const COLORS = ['c1','c2','c3','c4','c5','c6'];
 const DEFAULT_CATS = [
@@ -283,8 +379,10 @@ const DEFAULTS = {refreshTime:'04:00', lastRollover:null, categories:DEFAULT_CAT
 const isoWeek = k => { const d = parse(k); d.setDate(d.getDate() + 3 - (d.getDay()+6)%7);
   const w1 = new Date(d.getFullYear(), 0, 4); return 1 + Math.round(((d - w1)/864e5 - 3 + (w1.getDay()+6)%7) / 7); };
 const hm = ts => { const d = new Date(ts); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
-const stamp = ts => { const d = new Date(ts); return `${d.getMonth()+1}/${d.getDate()} ${hm(ts)}`; };
-const dayLabel = k => { const d = parse(k); return `${d.getMonth()+1}月${d.getDate()}日 周${WD[d.getDay()]}`; };
+const stamp = ts => { const d = new Date(ts); return LANG === 'en' ? `${d.getDate()} ${MON[d.getMonth()]} ${hm(ts)}` : `${d.getMonth()+1}/${d.getDate()} ${hm(ts)}`; };
+const dayLabel = k => { const d = parse(k);
+  return LANG === 'en' ? `${WD.en[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}` : `${d.getMonth()+1}月${d.getDate()}日 周${WD.zh[d.getDay()]}`; };
+const shortDay = k => { const d = parse(k); return LANG === 'en' ? `${d.getDate()} ${MON[d.getMonth()]}` : `${d.getMonth()+1}月${d.getDate()}日`; };
 
 /* ---------- state ---------- */
 let db = null;
@@ -292,7 +390,7 @@ const clientId = Math.random().toString(36).slice(2);
 const S = {
   tasks: [], routines: [], settings: {...DEFAULTS}, settingsExists: false,
   settingsLoaded: false, tasksLoaded: false, noDb: false, loading: true,
-  view: 'today', filter: 'all', open: null, confirmDel: null, drafts: {},
+  view: 'today', filter: 'all', open: null, confirmDel: null, drafts: {}, histOpen: new Set(),
   journal: [], journalKey: null, journalUnsub: null,
   cal: {mode:'month', anchor:null, sel:null, fetched:[], selNotes:[], key:null},
   arch: [], archFilter: 'all', archLoaded: false, rolling: false
@@ -302,19 +400,35 @@ try { const v = localStorage.getItem('rcb-view'); if (v) S.view = v; } catch {}
 const refreshMin = () => { const [h,m] = (S.settings.refreshTime || '04:00').split(':').map(Number); return (h||0)*60 + (m||0); };
 const today = () => fmt(new Date(Date.now() - refreshMin()*6e4));
 const cats = () => (S.settings.categories && S.settings.categories.length) ? S.settings.categories : DEFAULT_CATS;
-const catOf = id => cats().find(c => c.id === id) || {id:'', name:'未分类', color:'c6'};
-const findTask = id => S.tasks.find(t => t.id === id);
+const catOf = id => cats().find(c => c.id === id) || {id:'', name:'', color:'c6'};
+// Default categories keep their stored Chinese name; show the translated name until the user renames them.
+const catName = c => { if (!c.id) return t('uncategorized');
+  const def = DEFAULT_CATS.find(d => d.id === c.id); return def && c.name === def.name ? t('cat_' + c.id) : c.name; };
+const findTask = id => S.tasks.find(x => x.id === id);
 
 function toast(msg) { const el = $('#toast'); el.textContent = msg; el.classList.add('on');
   clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2600); }
 function errMsg(e) {
   const c = e && e.code;
-  if (c === 'quota_exceeded') return '存储已满：请在归档里删除一些旧任务';
-  if (c === 'invalid_argument') return '没有保存权限，或内容格式不对';
-  if (c === 'resource_exhausted') return '操作太快了，稍等几秒再试';
-  return '保存失败，请检查网络后再试';
+  if (c === 'quota_exceeded') return t('e_quota');
+  if (c === 'invalid_argument') return t('e_perm');
+  if (c === 'resource_exhausted') return t('e_rate');
+  return t('e_generic');
 }
 async function safe(fn) { try { return await fn(); } catch (e) { console.error(e); toast(errMsg(e)); } }
+
+function setLang(l) {
+  if (!I18N[l] || l === LANG) return;
+  LANG = l; try { localStorage.setItem('rcb-lang', l); } catch {}
+  render();
+}
+function applyStatic() {
+  document.documentElement.lang = LANG === 'en' ? 'en' : 'zh-CN';
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
+  const ls = $('#set-lang'); if (document.activeElement !== ls) ls.value = LANG;
+}
 
 /* ---------- data writes ---------- */
 const tref = id => db.doc('tasks/' + id);
@@ -353,17 +467,17 @@ async function rollover() {
     if (cur && cur.lastRollover && cur.lastRollover >= day) return;
     const snap = await db.collection('tasks').where('archived', '==', false).get();
     for (const d of snap.docs) {
-      const t = d.data();
-      if (!t.date || t.date >= day) continue;  // today or planned for later
-      if (t.status === 'done') await tref(d.id).update({archived: true});
-      else if (t.kind === 'daily') await tref(d.id).update({archived: true, missed: true});
+      const x = d.data();
+      if (!x.date || x.date >= day) continue;  // today or planned for later
+      if (x.status === 'done') await tref(d.id).update({archived: true});
+      else if (x.kind === 'daily') await tref(d.id).update({archived: true, missed: true});
       else await tref(d.id).update({date: day});   // carry over; originDate keeps the delay count
     }
     const rs = await db.collection('routines').get();
     for (const r of rs.docs) await genRoutine({id: r.id, ...r.data()}, day);
     if (cur) await db.doc('meta/settings').update({lastRollover: day});
     else await db.doc('meta/settings').set({...DEFAULTS, ...S.settings, lastRollover: day});
-  } catch (e) { console.error(e); toast('每日刷新没有完成，稍后会自动重试'); }
+  } catch (e) { console.error(e); toast(t('t_rollFail')); }
   finally { S.rolling = false; }
 }
 function maybeRoll() {
@@ -373,9 +487,9 @@ function maybeRoll() {
   if (!S.settings.lastRollover || S.settings.lastRollover < day) setTimeout(rollover, 50);
 }
 async function tidyNow() {
-  const done = S.tasks.filter(t => t.status === 'done');
-  if (!done.length) return toast('没有需要归档的已完成任务');
-  await safe(async () => { for (const t of done) await tref(t.id).update({archived: true}); toast(`已归档 ${done.length} 项`); });
+  const done = S.tasks.filter(x => x.status === 'done');
+  if (!done.length) return toast(t('t_noneToArchive'));
+  await safe(async () => { for (const x of done) await tref(x.id).update({archived: true}); toast(t('t_archivedN', {n: done.length})); });
 }
 
 /* ---------- journal (free notes per day) ---------- */
@@ -393,17 +507,17 @@ async function addJournal(text) {
 
 /* ---------- rendering ---------- */
 function catOptions(sel) {
-  return cats().map(c => `<option value="${esc(c.id)}"${c.id === sel ? ' selected' : ''}>${esc(c.name)}</option>`).join('');
+  return cats().map(c => `<option value="${esc(c.id)}"${c.id === sel ? ' selected' : ''}>${esc(catName(c))}</option>`).join('');
 }
 function fillSelect(el) { const v = el.value; el.innerHTML = catOptions(v || cats()[0].id); if (v && cats().some(c => c.id === v)) el.value = v; }
 
 function render() {
   const a = document.activeElement, aid = a && a.id;
   let s0 = null, s1 = null; try { s0 = a.selectionStart; s1 = a.selectionEnd; } catch {}
+  applyStatic();
   document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-current', String(b.dataset.v === S.view)));
   for (const v of ['today','cal','arch','set']) $('#v-' + v).hidden = S.view !== v;
-  $('#banner-wrap').innerHTML = S.noDb
-    ? '<div class="banner">这个页面需要在 claude.ai 登录后打开，才能保存和同步你的任务。</div>' : '';
+  $('#banner-wrap').innerHTML = S.noDb ? `<div class="banner">${esc(t('noDb'))}</div>` : '';
   ['#qa-cat', '#ra-cat'].forEach(s => fillSelect($(s)));
   if (S.view === 'today') renderToday();
   if (S.view === 'cal') renderCal();
@@ -420,89 +534,97 @@ const byState = (a, b) => (ORDER[a.status] - ORDER[b.status]) || ((a.createdAt||
 
 function renderToday() {
   const td = today();
-  const all = S.tasks.filter(t => t.date <= td);
-  const done = all.filter(t => t.status === 'done').length;
+  const all = S.tasks.filter(x => x.date <= td);
+  const done = all.filter(x => x.status === 'done').length;
   const pct = all.length ? Math.round(done / all.length * 100) : 0;
   $('#dayhead').innerHTML = `
     <h1>${dayLabel(td)}</h1>
-    <div class="sub"><span>第 <span class="num">${isoWeek(td)}</span> 周</span>
-      <span>已完成 <span class="num">${done}/${all.length}</span></span>
-      <span>每天 <span class="num">${esc(S.settings.refreshTime || '04:00')}</span> 开始新的一天</span></div>
+    <div class="sub"><span>${esc(t('weekN', {n: isoWeek(td)}))}</span>
+      <span>${esc(t('doneOf', {a: `${done}/${all.length}`}))}</span>
+      <span>${esc(t('refreshAt', {t: S.settings.refreshTime || '04:00'}))}</span></div>
     <div class="bar"><i style="width:${pct}%"></i></div>`;
 
-  const counts = {}; all.forEach(t => counts[t.cat] = (counts[t.cat]||0) + 1);
-  $('#catfilter').innerHTML = `<button class="chip" data-act="filter" data-c="all" aria-pressed="${S.filter==='all'}">全部 <span class="num">${all.length}</span></button>` +
-    cats().map(c => `<button class="chip" data-act="filter" data-c="${esc(c.id)}" aria-pressed="${S.filter===c.id}"><i class="dot" style="background:var(--${c.color})"></i>${esc(c.name)} <span class="num">${counts[c.id]||0}</span></button>`).join('');
+  const counts = {}; all.forEach(x => counts[x.cat] = (counts[x.cat]||0) + 1);
+  $('#catfilter').innerHTML = `<button class="chip" data-act="filter" data-c="all" aria-pressed="${S.filter==='all'}">${esc(t('all'))} <span class="num">${all.length}</span></button>` +
+    cats().map(c => `<button class="chip" data-act="filter" data-c="${esc(c.id)}" aria-pressed="${S.filter===c.id}"><i class="dot" style="background:var(--${c.color})"></i>${esc(catName(c))} <span class="num">${counts[c.id]||0}</span></button>`).join('');
 
-  const list = all.filter(t => S.filter === 'all' || t.cat === S.filter);
-  const daily = list.filter(t => t.kind === 'daily').sort(byState);
-  const once = list.filter(t => t.kind !== 'daily').sort(byState);
+  const list = all.filter(x => S.filter === 'all' || x.cat === S.filter);
+  const daily = list.filter(x => x.kind === 'daily').sort(byState);
+  const once = list.filter(x => x.kind !== 'daily').sort(byState);
   let html = '';
-  if (S.loading && !S.noDb) html = '<div class="list"><div class="empty">正在载入任务…</div></div>';
-  else if (!list.length) html = `<div class="list"><div class="empty">${all.length ? '这个分类今天没有任务。' : '今天还没有任务。在上方输入框写下第一件事，回车即可添加。'}</div></div>`;
+  if (S.loading && !S.noDb) html = `<div class="list"><div class="empty">${esc(t('loading'))}</div></div>`;
+  else if (!list.length) html = `<div class="list"><div class="empty">${esc(all.length ? t('emptyCat') : t('emptyToday'))}</div></div>`;
   else {
-    if (daily.length) html += `<h2 class="sec">日常 <span class="num">${daily.filter(t=>t.status==='done').length}/${daily.length}</span></h2><div class="list">${daily.map(taskRow).join('')}</div>`;
-    if (once.length) html += `<h2 class="sec">待办 <span class="num">${once.filter(t=>t.status==='done').length}/${once.length}</span></h2><div class="list">${once.map(taskRow).join('')}</div>`;
+    if (daily.length) html += `<h2 class="sec">${esc(t('secDaily'))} <span class="num">${daily.filter(x=>x.status==='done').length}/${daily.length}</span></h2><div class="list">${daily.map(taskRow).join('')}</div>`;
+    if (once.length) html += `<h2 class="sec">${esc(t('secTodo'))} <span class="num">${once.filter(x=>x.status==='done').length}/${once.length}</span></h2><div class="list">${once.map(taskRow).join('')}</div>`;
   }
   $('#today-list').innerHTML = html;
 
   const notes = [...S.journal].sort((a, b) => b.t - a.t);
   $('#today-notes').innerHTML = notes.length
-    ? `<div class="list"><ul class="notes">${notes.map(n => `<li><time>${hm(n.t)}</time><span>${esc(n.text)}</span><button class="x" data-act="deljournal" data-t="${n.t}" aria-label="删除笔记">删除</button></li>`).join('')}</ul></div>` : '';
+    ? `<div class="list"><ul class="notes">${notes.map(n => `<li><time>${hm(n.t)}</time><span>${esc(n.text)}</span><button class="x" data-act="deljournal" data-t="${n.t}" aria-label="${esc(t('delNote'))}">${esc(t('del'))}</button></li>`).join('')}</ul></div>` : '';
 
-  const fut = S.tasks.filter(t => t.date > td).sort((a, b) => a.date.localeCompare(b.date));
-  const groups = {}; fut.forEach(t => (groups[t.date] = groups[t.date] || []).push(t));
+  const fut = S.tasks.filter(x => x.date > td).sort((a, b) => a.date.localeCompare(b.date));
+  const groups = {}; fut.forEach(x => (groups[x.date] = groups[x.date] || []).push(x));
   const keys = Object.keys(groups);
-  $('#upcoming').innerHTML = keys.length ? `<h2 class="sec">之后的安排</h2><div class="list">${keys.map(k => {
-    const n = diffDays(td, k); const lab = n === 1 ? '明天' : dayLabel(k);
-    return `<div class="up"><span class="d">${lab}</span><div class="items">${groups[k].map(t => `<span><i class="dot" style="background:var(--${catOf(t.cat).color})"></i>${esc(t.title)}</span>`).join('')}</div></div>`;
+  $('#upcoming').innerHTML = keys.length ? `<h2 class="sec">${esc(t('secUpcoming'))}</h2><div class="list">${keys.map(k => {
+    const lab = diffDays(td, k) === 1 ? t('tomorrow') : dayLabel(k);
+    return `<div class="up"><span class="d">${esc(lab)}</span><div class="items">${groups[k].map(x => `<span><i class="dot" style="background:var(--${catOf(x.cat).color})"></i>${esc(x.title)}</span>`).join('')}</div></div>`;
   }).join('')}</div>` : '';
 }
 
-function taskRow(t) {
-  const c = catOf(t.cat); const td = today();
-  const carried = t.kind !== 'daily' && t.originDate && t.originDate < t.date ? diffDays(t.originDate, t.date) : 0;
-  const last = (t.progress || []).slice(-1)[0];
-  const open = S.open && S.open.id === t.id;
+function history(x) {
+  const p = x.progress || [], n = x.notes || [];
+  if (!p.length && !n.length) return '';
+  const items = [...p.map(e => ({...e, k:'p'})), ...n.map(e => ({...e, k:'n'}))].sort((a, b) => b.t - a.t);
+  const open = S.histOpen.has(x.id);
+  return `<details class="hist" data-hist="${esc(x.id)}"${open ? ' open' : ''}>
+    <summary><span class="cnt">${esc([p.length ? t('histP', {n: p.length}) : '', n.length ? (n.length === 1 ? t('histN1') : t('histN', {n: n.length})) : ''].filter(Boolean).join(' · '))}</span><span class="lt">· ${esc(items[0].text)}</span></summary>
+    <ul class="tl">${items.map(e => `<li><time>${stamp(e.t)}</time><span><span class="k ${e.k}">${esc(e.k==='p' ? t('progress') : t('note'))}</span>${esc(e.text)}</span></li>`).join('')}</ul>
+  </details>`;
+}
+
+function taskRow(x) {
+  const c = catOf(x.cat); const td = today();
+  const carried = x.kind !== 'daily' && x.originDate && x.originDate < x.date ? diffDays(x.originDate, x.date) : 0;
+  const open = S.open && S.open.id === x.id;
   const mode = open ? S.open.mode : null;
-  return `<div class="task st-${t.status}" data-id="${esc(t.id)}">
-    <button class="chk" style="--cc:var(--${c.color})" data-act="toggle" aria-label="${t.status==='done'?'标记为未完成':'标记为完成'}"></button>
+  return `<div class="task st-${x.status}" data-id="${esc(x.id)}">
+    <button class="chk" style="--cc:var(--${c.color})" data-act="toggle" aria-label="${esc(x.status==='done' ? t('markUndone') : t('markDone'))}"></button>
     <div class="tbody">
-      <button class="ttitle" data-act="expand">${esc(t.title)}</button>
+      <button class="ttitle" data-act="expand">${esc(x.title)}</button>
       <div class="tmeta">
-        <span>${esc(c.name)}${t.kind==='daily' ? ' · 日常' : ''}</span>
-        <button class="pill ${t.status}" data-act="cycle" title="点击切换状态">${STATUS[t.status]}</button>
-        ${carried ? `<span class="carry">已顺延 <span class="num">${carried}</span> 天</span>` : ''}
-        ${t.date > td ? `<span>${dayLabel(t.date)}</span>` : ''}
-        ${last && !open ? `<span class="latest">↳ ${esc(last.text)}</span>` : ''}
+        <span>${esc(catName(c))}${x.kind==='daily' ? ' · ' + esc(t('dailyTag')) : ''}</span>
+        <button class="pill ${x.status}" data-act="cycle" title="${esc(t('cycleTitle'))}">${esc(t('st_' + x.status))}</button>
+        ${carried ? `<span class="carry">${esc(t('carried', {n: carried}))}</span>` : ''}
+        ${x.date > td ? `<span>${dayLabel(x.date)}</span>` : ''}
       </div>
+      ${history(x)}
     </div>
     <div class="tacts">
-      <button data-act="open" data-m="progress" aria-pressed="${mode==='progress'}">进展</button>
-      <button data-act="open" data-m="note" aria-pressed="${mode==='note'}">笔记</button>
+      <button data-act="open" data-m="progress" aria-pressed="${mode==='progress'}">${esc(t('progress'))}</button>
+      <button data-act="open" data-m="note" aria-pressed="${mode==='note'}">${esc(t('note'))}</button>
     </div>
-    ${open ? detail(t, mode) : ''}
+    ${open ? detail(x, mode) : ''}
   </div>`;
 }
 
-function detail(t, mode) {
-  const inId = 'in-' + t.id;
-  const items = [...(t.progress||[]).map(x => ({...x, k:'p'})), ...(t.notes||[]).map(x => ({...x, k:'n'}))].sort((a, b) => b.t - a.t);
-  const conf = S.confirmDel === t.id;
-  const v = k => esc(S.drafts[k + t.id] ?? '');
+function detail(x, mode) {
+  const inId = 'in-' + x.id;
+  const conf = S.confirmDel === x.id;
+  const v = k => esc(S.drafts[k + x.id] ?? '');
   return `<div class="detail">
     <div class="entry">
-      <div class="seg"><button data-act="open" data-m="progress" aria-pressed="${mode==='progress'}">进展</button><button data-act="open" data-m="note" aria-pressed="${mode==='note'}">笔记</button></div>
-      <input class="field" id="${esc(inId)}" data-draft data-entry="${esc(t.id)}" value="${v('in-')}" placeholder="${mode==='progress' ? '这次推进了什么？回车保存' : '写点备注，回车保存'}" aria-label="${mode==='progress'?'进展':'笔记'}">
-      <button class="btn" data-act="entry">保存</button>
+      <div class="seg"><button data-act="open" data-m="progress" aria-pressed="${mode==='progress'}">${esc(t('progress'))}</button><button data-act="open" data-m="note" aria-pressed="${mode==='note'}">${esc(t('note'))}</button></div>
+      <input class="field" id="${esc(inId)}" data-draft data-entry="${esc(x.id)}" value="${v('in-')}" placeholder="${esc(mode==='progress' ? t('phProgress') : t('phNote'))}" aria-label="${esc(mode==='progress' ? t('progress') : t('note'))}">
+      <button class="btn" data-act="entry">${esc(t('save'))}</button>
     </div>
-    ${items.length ? `<ul class="tl">${items.map(x => `<li><time>${stamp(x.t)}</time><span><span class="k ${x.k}">${x.k==='p'?'进展':'笔记'}</span>${esc(x.text)}</span></li>`).join('')}</ul>` : '<p class="hint" style="margin:0">还没有进展或笔记。</p>'}
     <div class="edit">
-      <input class="field" id="ed-title-${esc(t.id)}" data-draft value="${S.drafts['ed-title-' + t.id] != null ? v('ed-title-') : esc(t.title)}" aria-label="标题">
-      <select id="ed-cat-${esc(t.id)}" aria-label="分类">${catOptions(t.cat)}</select>
-      ${t.kind === 'daily' ? '' : `<input type="date" id="ed-date-${esc(t.id)}" value="${esc(t.date)}" aria-label="日期">`}
-      <button class="btn" data-act="saveedit">保存修改</button>
-      <button class="btn ${conf ? 'danger' : 'ghost'}" data-act="del">${conf ? '确认删除' : '删除'}</button>
+      <input class="field" id="ed-title-${esc(x.id)}" data-draft value="${S.drafts['ed-title-' + x.id] != null ? v('ed-title-') : esc(x.title)}" aria-label="${esc(t('title'))}">
+      <select id="ed-cat-${esc(x.id)}" aria-label="${esc(t('category'))}">${catOptions(x.cat)}</select>
+      ${x.kind === 'daily' ? '' : `<input type="date" id="ed-date-${esc(x.id)}" value="${esc(x.date)}" aria-label="${esc(t('date'))}">`}
+      <button class="btn" data-act="saveedit">${esc(t('saveEdit'))}</button>
+      <button class="btn ${conf ? 'danger' : 'ghost'}" data-act="del">${esc(conf ? t('confirmDel') : t('del'))}</button>
     </div>
   </div>`;
 }
@@ -525,27 +647,27 @@ async function loadCal() {
   } catch (err) { console.error(err); }
 }
 function calTasks() {
-  const m = new Map(S.cal.fetched.filter(t => t.archived).map(t => [t.id, t]));
-  S.tasks.forEach(t => m.set(t.id, t));
-  const by = {}; m.forEach(t => (by[t.date] = by[t.date] || []).push(t));
+  const m = new Map(S.cal.fetched.filter(x => x.archived).map(x => [x.id, x]));
+  S.tasks.forEach(x => m.set(x.id, x));
+  const by = {}; m.forEach(x => (by[x.date] = by[x.date] || []).push(x));
   Object.values(by).forEach(a => a.sort(byState));
   return by;
 }
 function renderCal() {
   const td = today(); const a = S.cal.anchor || td; const [s] = calRange();
   const week = S.cal.mode === 'week'; const n = week ? 7 : 42;
-  const ad = parse(a);
-  $('#cal-title').textContent = week ? `${parse(s).getMonth()+1}月${parse(s).getDate()}日 – ${parse(addDays(s,6)).getMonth()+1}月${parse(addDays(s,6)).getDate()}日`
-    : `${ad.getFullYear()}年${ad.getMonth()+1}月`;
+  const ad = parse(a); const e = addDays(s, 6);
+  $('#cal-title').textContent = week ? `${shortDay(s)} – ${shortDay(e)}`
+    : (LANG === 'en' ? `${MONL[ad.getMonth()]} ${ad.getFullYear()}` : `${ad.getFullYear()}年${ad.getMonth()+1}月`);
   document.querySelectorAll('#cal-mode button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === S.cal.mode)));
   const by = calTasks(); const sel = S.cal.sel || td;
-  let h = ['一','二','三','四','五','六','日'].map(w => `<div class="wd">${w}</div>`).join('');
+  let h = [1,2,3,4,5,6,0].map(w => `<div class="wd">${WD[LANG][w]}</div>`).join('');
   for (let i = 0; i < n; i++) {
     const k = addDays(s, i); const d = parse(k); const items = by[k] || [];
     const show = week ? items : items.slice(0, 3);
     const out = !week && d.getMonth() !== ad.getMonth();
-    h += `<button class="cell${out?' out':''}${k===td?' today':''}${k===sel?' sel':''}" data-act="calsel" data-day="${k}" aria-label="${dayLabel(k)}，${items.length} 项">
-      <span class="dn">${d.getDate()}</span><span class="cis">${show.map(t => `<span class="ci${t.status==='done'?' done':''}"><i class="dot" style="background:var(--${catOf(t.cat).color})"></i><span>${esc(t.title)}</span></span>`).join('')}</span>
+    h += `<button class="cell${out?' out':''}${k===td?' today':''}${k===sel?' sel':''}" data-act="calsel" data-day="${k}" aria-label="${esc(t('calItems', {d: dayLabel(k), n: items.length}))}">
+      <span class="dn">${d.getDate()}</span><span class="cis">${show.map(x => `<span class="ci${x.status==='done'?' done':''}"><i class="dot" style="background:var(--${catOf(x.cat).color})"></i><span>${esc(x.title)}</span></span>`).join('')}</span>
       ${items.length > show.length ? `<span class="more">+${items.length - show.length}</span>` : ''}</button>`;
   }
   $('#cal-grid').innerHTML = `<div class="grid ${week?'week':'month'}">${h}</div>`;
@@ -553,14 +675,14 @@ function renderCal() {
   const items = by[sel] || [];
   const notes = sel === S.journalKey ? S.journal : S.cal.selNotes;
   $('#cal-day').innerHTML = `<h2>${dayLabel(sel)}</h2>
-    <div class="list">${items.length ? items.map(t => `<div class="mini st-${t.status}${t.status==='done'?' done':''}" data-id="${esc(t.id)}">
-      ${t.archived ? `<i class="dot" style="background:var(--${catOf(t.cat).color})"></i>` : `<button class="chk" style="--cc:var(--${catOf(t.cat).color});width:18px;height:18px;margin:0" data-act="toggle" aria-label="切换完成"></button>`}
-      <span class="t">${esc(t.title)}</span><span class="m">${t.archived ? (t.missed ? '未完成 · 已归档' : '已归档') : STATUS[t.status]}</span></div>`).join('')
-      : '<div class="empty">这天没有任务。</div>'}</div>
-    ${notes.length ? `<h2 class="sec">当天笔记</h2><div class="list"><ul class="notes">${[...notes].sort((x,y)=>x.t-y.t).map(n => `<li><time>${hm(n.t)}</time><span>${esc(n.text)}</span><span></span></li>`).join('')}</ul></div>` : ''}
+    <div class="list">${items.length ? items.map(x => `<div class="mini st-${x.status}${x.status==='done'?' done':''}" data-id="${esc(x.id)}">
+      ${x.archived ? `<i class="dot" style="background:var(--${catOf(x.cat).color})"></i>` : `<button class="chk" style="--cc:var(--${catOf(x.cat).color});width:18px;height:18px;margin:0" data-act="toggle" aria-label="${esc(t('toggleDone'))}"></button>`}
+      <span class="t">${esc(x.title)}</span><span class="m">${esc(x.archived ? (x.missed ? t('archMissed') : t('archived')) : t('st_' + x.status))}</span></div>`).join('')
+      : `<div class="empty">${esc(t('calEmpty'))}</div>`}</div>
+    ${notes.length ? `<h2 class="sec">${esc(t('dayNotes'))}</h2><div class="list"><ul class="notes">${[...notes].sort((p,q)=>p.t-q.t).map(n => `<li><time>${hm(n.t)}</time><span>${esc(n.text)}</span><span></span></li>`).join('')}</ul></div>` : ''}
     <form class="qa" id="cd" style="margin-top:10px" autocomplete="off">
-      <input type="text" id="cd-title" data-draft value="${esc(S.drafts['cd-title'] ?? '')}" placeholder="给 ${parse(sel).getMonth()+1}月${parse(sel).getDate()}日 添加任务" aria-label="任务标题">
-      <div class="opts"><select id="cd-cat" aria-label="分类">${catOptions(S.drafts['cd-cat'] || cats()[0].id)}</select><button class="btn primary" type="submit">添加</button></div>
+      <input type="text" id="cd-title" data-draft value="${esc(S.drafts['cd-title'] ?? '')}" placeholder="${esc(t('cdPh', {d: shortDay(sel)}))}" aria-label="${esc(t('taskTitle'))}">
+      <div class="opts"><select id="cd-cat" aria-label="${esc(t('category'))}">${catOptions(S.drafts['cd-cat'] || cats()[0].id)}</select><button class="btn primary" type="submit">${esc(t('add'))}</button></div>
     </form>`;
 }
 async function selectDay(k) {
@@ -576,20 +698,20 @@ async function loadArch() {
   try {
     const snap = await db.collection('tasks').where('archived', '==', true).orderBy('date', 'desc').limit(300).get();
     S.arch = snap.docs.map(d => ({id: d.id, ...d.data()})); S.archLoaded = true; render();
-  } catch (e) { console.error(e); toast('归档载入失败'); }
+  } catch (e) { console.error(e); toast(t('t_archFail')); }
 }
 function renderArch() {
-  const list = S.arch.filter(t => S.archFilter === 'all' || t.cat === S.archFilter);
-  $('#arch-filter').innerHTML = `<button class="chip" data-act="afilter" data-c="all" aria-pressed="${S.archFilter==='all'}">全部</button>` +
-    cats().map(c => `<button class="chip" data-act="afilter" data-c="${esc(c.id)}" aria-pressed="${S.archFilter===c.id}"><i class="dot" style="background:var(--${c.color})"></i>${esc(c.name)}</button>`).join('');
-  if (!S.archLoaded) { $('#arch-list').innerHTML = '<div class="list"><div class="empty">正在载入…</div></div>'; return; }
-  if (!list.length) { $('#arch-list').innerHTML = '<div class="list"><div class="empty">还没有归档的任务。完成的任务会在每天刷新时出现在这里。</div></div>'; return; }
-  const g = {}; list.forEach(t => (g[t.date] = g[t.date] || []).push(t));
-  $('#arch-list').innerHTML = Object.keys(g).map(k => `<div class="agrp"><h3>${dayLabel(k)} · <span class="num">${g[k].filter(t=>!t.missed).length}</span> 项完成</h3><div class="list">${g[k].map(t => `
-    <div class="mini${t.missed?'':' done'}" data-id="${esc(t.id)}"><i class="dot" style="background:var(--${catOf(t.cat).color})"></i>
-      <span class="t">${esc(t.title)}</span>
-      <span class="m">${t.missed ? '未完成' : (t.doneAt ? hm(t.doneAt) + ' 完成' : '完成')}${(t.progress||[]).length ? ` · ${(t.progress).length} 条进展` : ''}</span>
-      <button class="btn ghost" data-act="restore">恢复</button></div>`).join('')}</div></div>`).join('');
+  const list = S.arch.filter(x => S.archFilter === 'all' || x.cat === S.archFilter);
+  $('#arch-filter').innerHTML = `<button class="chip" data-act="afilter" data-c="all" aria-pressed="${S.archFilter==='all'}">${esc(t('all'))}</button>` +
+    cats().map(c => `<button class="chip" data-act="afilter" data-c="${esc(c.id)}" aria-pressed="${S.archFilter===c.id}"><i class="dot" style="background:var(--${c.color})"></i>${esc(catName(c))}</button>`).join('');
+  if (!S.archLoaded) { $('#arch-list').innerHTML = `<div class="list"><div class="empty">${esc(t('archLoading'))}</div></div>`; return; }
+  if (!list.length) { $('#arch-list').innerHTML = `<div class="list"><div class="empty">${esc(t('archEmpty'))}</div></div>`; return; }
+  const g = {}; list.forEach(x => (g[x.date] = g[x.date] || []).push(x));
+  $('#arch-list').innerHTML = Object.keys(g).map(k => `<div class="agrp"><h3>${dayLabel(k)} · ${esc(t('archCount', {n: g[k].filter(x=>!x.missed).length}))}</h3><div class="list">${g[k].map(x => `
+    <div class="mini${x.missed?'':' done'}" data-id="${esc(x.id)}"><i class="dot" style="background:var(--${catOf(x.cat).color})"></i>
+      <span class="t">${esc(x.title)}</span>
+      <span class="m">${esc(x.missed ? t('missed') : (x.doneAt ? t('doneAt', {t: hm(x.doneAt)}) : t('doneShort')))}${(x.progress||[]).length ? ' · ' + esc(t('updates', {n: x.progress.length})) : ''}</span>
+      <button class="btn ghost" data-act="restore">${esc(t('restore'))}</button></div>`).join('')}</div></div>`).join('');
 }
 
 /* settings */
@@ -597,24 +719,28 @@ function renderSet() {
   const ti = $('#set-time'); if (document.activeElement !== ti) ti.value = S.settings.refreshTime || '04:00';
   $('#set-cats').innerHTML = cats().map(c => `<div class="srow" data-cat="${esc(c.id)}">
     <i class="dot" style="background:var(--${c.color});width:12px;height:12px"></i>
-    <input class="field" id="cat-name-${esc(c.id)}" data-draft data-catname="${esc(c.id)}" value="${esc(S.drafts['cat-name-' + c.id] ?? c.name)}" aria-label="分类名称">
-    <span class="sw">${COLORS.map(k => `<button style="background:var(--${k})" data-act="catcolor" data-k="${k}" aria-pressed="${c.color===k}" aria-label="颜色 ${k}"></button>`).join('')}</span>
-    <button class="btn ghost" data-act="delcat">删除</button></div>`).join('');
+    <input class="field" id="cat-name-${esc(c.id)}" data-draft data-catname="${esc(c.id)}" value="${esc(S.drafts['cat-name-' + c.id] ?? catName(c))}" aria-label="${esc(t('catName'))}">
+    <span class="sw">${COLORS.map(k => `<button style="background:var(--${k})" data-act="catcolor" data-k="${k}" aria-pressed="${c.color===k}" aria-label="${esc(t('color'))} ${k}"></button>`).join('')}</span>
+    <button class="btn ghost" data-act="delcat">${esc(t('del'))}</button></div>`).join('');
   $('#set-routines').innerHTML = S.routines.length ? S.routines.slice().sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).map(r => `<div class="srow" data-rid="${esc(r.id)}">
     <i class="dot" style="background:var(--${catOf(r.cat).color})"></i>
     <span style="flex:1 1 160px;min-width:0">${esc(r.title)}</span>
-    <select data-rcat aria-label="分类">${catOptions(r.cat)}</select>
-    <span class="wdays">${[1,2,3,4,5,6,0].map(d => `<button data-act="rday" data-d="${d}" aria-pressed="${(r.days||[]).includes(d)}">${WD[d]}</button>`).join('')}</span>
-    <button class="btn ghost" data-act="delroutine">删除</button></div>`).join('')
-    : '<div class="empty">还没有日常任务。下面添加一条，或在“今天”添加任务时选择“每天”。</div>';
+    <select data-rcat aria-label="${esc(t('category'))}">${catOptions(r.cat)}</select>
+    <span class="wdays">${[1,2,3,4,5,6,0].map(d => `<button data-act="rday" data-d="${d}" aria-pressed="${(r.days||[]).includes(d)}" aria-label="${WD.en[d]}">${WD2[LANG][d]}</button>`).join('')}</span>
+    <button class="btn ghost" data-act="delroutine">${esc(t('del'))}</button></div>`).join('')
+    : `<div class="empty">${esc(t('routinesEmpty'))}</div>`;
 }
 
 /* ---------- events ---------- */
 document.addEventListener('input', e => { if (e.target.dataset && 'draft' in e.target.dataset) S.drafts[e.target.id] = e.target.value; });
+document.addEventListener('toggle', e => {
+  const el = e.target; if (!el.dataset || !el.dataset.hist) return;
+  if (el.open) S.histOpen.add(el.dataset.hist); else S.histOpen.delete(el.dataset.hist);
+}, true);
 $('#qa-when').addEventListener('change', e => { const p = e.target.value === 'pick'; $('#qa-date').hidden = !p; if (p) { $('#qa-date').value = addDays(today(), 1); } });
 
 $('#qa').addEventListener('submit', async e => {
-  e.preventDefault(); if (!db) return toast('需要登录 claude.ai 才能保存');
+  e.preventDefault(); if (!db) return toast(t('t_needLogin'));
   const title = $('#qa-title').value.trim(); if (!title) return;
   const cat = $('#qa-cat').value, when = $('#qa-when').value, rep = $('#qa-repeat').value, td = today();
   const date = when === 'today' ? td : when === 'tomorrow' ? addDays(td, 1) : ($('#qa-date').value || td);
@@ -624,7 +750,7 @@ $('#qa').addEventListener('submit', async e => {
       const ref = db.collection('routines').doc();
       const r = {title, cat, days: rep === 'daily' ? [0,1,2,3,4,5,6] : [1,2,3,4,5], active: true, createdAt: Date.now()};
       await ref.set(r); await genRoutine({id: ref.id, ...r}, td);
-      toast('已添加为日常任务，每天自动出现');
+      toast(t('t_routineAdded'));
     } else await addTask({title, cat, date});
   });
 });
@@ -640,7 +766,11 @@ $('#ra').addEventListener('submit', async e => {
   $('#ra-title').value = '';
   await safe(async () => { const ref = db.collection('routines').doc(); await ref.set(r); await genRoutine({id: ref.id, ...r}, today()); });
 });
-$('#set-time').addEventListener('change', e => { if (db && e.target.value) safe(() => saveSettings({refreshTime: e.target.value})).then(() => toast('刷新时间已保存')); });
+$('#set-time').addEventListener('change', e => { if (db && e.target.value) safe(() => saveSettings({refreshTime: e.target.value})).then(() => toast(t('t_refreshSaved'))); });
+$('#set-lang').addEventListener('change', e => {
+  const l = e.target.value; setLang(l); toast(t('t_langSaved'));
+  if (db) safe(() => saveSettings({lang: l}));
+});
 
 document.addEventListener('submit', async e => {
   if (e.target.id !== 'cd') return; e.preventDefault(); if (!db) return;
@@ -669,11 +799,11 @@ document.addEventListener('change', e => {
 });
 
 async function submitEntry(id) {
-  const t = findTask(id); const inp = document.getElementById('in-' + id);
-  if (!t || !inp) return; const text = inp.value.trim(); if (!text) return;
+  const x = findTask(id); const inp = document.getElementById('in-' + id);
+  if (!x || !inp) return; const text = inp.value.trim(); if (!text) return;
   const key = S.open && S.open.mode === 'note' ? 'notes' : 'progress';
-  const patch = {[key]: [...(t[key] || []), {t: Date.now(), text}]};
-  if (key === 'progress' && t.status === 'todo') patch.status = 'doing';
+  const patch = {[key]: [...(x[key] || []), {t: Date.now(), text}]};
+  if (key === 'progress' && x.status === 'todo') patch.status = 'doing';
   S.drafts['in-' + id] = ''; inp.value = '';
   await updTask(id, patch);
 }
@@ -688,17 +818,26 @@ document.addEventListener('click', async e => {
   }
   if (act === 'filter') { S.filter = b.dataset.c; render(); return; }
   if (act === 'afilter') { S.archFilter = b.dataset.c; render(); return; }
-  if (!db) { toast('需要登录 claude.ai 才能保存'); return; }
-  const t = id && findTask(id); const td = today();
+  if (act === 'calmode') { S.cal.mode = b.dataset.m; S.cal.anchor = S.cal.sel || today(); loadCal(); render(); return; }
+  if (act === 'calnav') {
+    const d = Number(b.dataset.d); const td = today(); let a = S.cal.anchor || td;
+    if (d === 0) a = td;
+    else if (S.cal.mode === 'week') a = addDays(a, 7 * d);
+    else { const x = parse(a); a = fmt(new Date(x.getFullYear(), x.getMonth() + d, 1)); }
+    S.cal.anchor = a; if (d === 0) S.cal.sel = td; loadCal(); render(); return;
+  }
+  if (act === 'calsel') { selectDay(b.dataset.day); return; }
+  if (!db) { toast(t('t_needLogin')); return; }
+  const x = id && findTask(id); const td = today();
   switch (act) {
     case 'toggle':
-      if (!t) return;
-      if (t.status === 'done') updTask(id, {status: 'todo', doneAt: null});
-      else updTask(id, {status: 'done', doneAt: Date.now(), date: t.date > td ? td : t.date});
+      if (!x) return;
+      if (x.status === 'done') updTask(id, {status: 'todo', doneAt: null});
+      else updTask(id, {status: 'done', doneAt: Date.now(), date: x.date > td ? td : x.date});
       break;
     case 'cycle': {
-      if (!t) return; const ns = NEXT[t.status];
-      updTask(id, ns === 'done' ? {status: ns, doneAt: Date.now(), date: t.date > td ? td : t.date} : {status: ns, doneAt: null});
+      if (!x) return; const ns = NEXT[x.status];
+      updTask(id, ns === 'done' ? {status: ns, doneAt: Date.now(), date: x.date > td ? td : x.date} : {status: ns, doneAt: null});
       break; }
     case 'expand': S.open = S.open && S.open.id === id ? null : {id, mode: 'progress'}; S.confirmDel = null; render(); break;
     case 'open': {
@@ -709,49 +848,41 @@ document.addEventListener('click', async e => {
       break; }
     case 'entry': submitEntry(id); break;
     case 'saveedit': {
-      if (!t) return;
-      const title = (document.getElementById('ed-title-' + id).value || '').trim() || t.title;
+      if (!x) return;
+      const title = (document.getElementById('ed-title-' + id).value || '').trim() || x.title;
       const cat = document.getElementById('ed-cat-' + id).value;
       const dEl = document.getElementById('ed-date-' + id);
       const patch = {title, cat};
-      if (dEl && dEl.value && dEl.value !== t.date) { patch.date = dEl.value; patch.originDate = dEl.value; }
+      if (dEl && dEl.value && dEl.value !== x.date) { patch.date = dEl.value; patch.originDate = dEl.value; }
       delete S.drafts['ed-title-' + id];
-      await updTask(id, patch); toast('已保存'); break; }
+      await updTask(id, patch); toast(t('t_saved')); break; }
     case 'del':
       if (S.confirmDel !== id) { S.confirmDel = id; render(); break; }
-      S.confirmDel = null; S.open = null; await safe(() => tref(id).delete()); toast('已删除'); break;
+      S.confirmDel = null; S.open = null; await safe(() => tref(id).delete()); toast(t('t_deleted')); break;
     case 'deljournal': {
       const ts = Number(b.dataset.t);
       await safe(() => db.doc('journal/' + S.journalKey).set({notes: S.journal.filter(n => n.t !== ts)})); break; }
     case 'tidy': tidyNow(); break;
-    case 'calmode': S.cal.mode = b.dataset.m; S.cal.anchor = S.cal.sel || td; loadCal(); render(); break;
-    case 'calnav': {
-      const d = Number(b.dataset.d); let a = S.cal.anchor || td;
-      if (d === 0) a = td;
-      else if (S.cal.mode === 'week') a = addDays(a, 7 * d);
-      else { const x = parse(a); a = fmt(new Date(x.getFullYear(), x.getMonth() + d, 1)); }
-      S.cal.anchor = a; if (d === 0) S.cal.sel = td; loadCal(); render(); break; }
-    case 'calsel': selectDay(b.dataset.day); break;
     case 'restore':
       await safe(() => tref(id).update({archived: false, missed: false, status: 'todo', doneAt: null, date: td, originDate: td}));
-      toast('已恢复到今天'); loadArch(); break;
+      toast(t('t_restored')); loadArch(); break;
     case 'addcat': {
       const used = cats().map(c => c.color); const color = COLORS.find(k => !used.includes(k)) || 'c6';
-      await safe(() => saveSettings({categories: [...cats(), {id: 'c' + Date.now().toString(36), name: '新分类', color}]})); break; }
+      await safe(() => saveSettings({categories: [...cats(), {id: 'c' + Date.now().toString(36), name: t('newCat'), color}]})); break; }
     case 'catcolor': {
       const cid = b.closest('[data-cat]').dataset.cat;
       await safe(() => saveSettings({categories: cats().map(c => c.id === cid ? {...c, color: b.dataset.k} : c)})); break; }
     case 'delcat': {
       const cid = b.closest('[data-cat]').dataset.cat;
-      if (cats().length <= 1) return toast('至少保留一个分类');
+      if (cats().length <= 1) return toast(t('t_keepOneCat'));
       await safe(() => saveSettings({categories: cats().filter(c => c.id !== cid)})); break; }
     case 'rday': {
-      const rid = b.closest('[data-rid]').dataset.rid; const r = S.routines.find(x => x.id === rid); if (!r) return;
-      const d = Number(b.dataset.d); const days = (r.days || []).includes(d) ? r.days.filter(x => x !== d) : [...(r.days || []), d];
+      const rid = b.closest('[data-rid]').dataset.rid; const r = S.routines.find(q => q.id === rid); if (!r) return;
+      const d = Number(b.dataset.d); const days = (r.days || []).includes(d) ? r.days.filter(q => q !== d) : [...(r.days || []), d];
       await safe(() => db.doc('routines/' + rid).update({days})); break; }
     case 'delroutine': {
       const rid = b.closest('[data-rid]').dataset.rid;
-      await safe(() => db.doc('routines/' + rid).delete()); toast('已删除。今天已生成的那一条保留在列表里'); break; }
+      await safe(() => db.doc('routines/' + rid).delete()); toast(t('t_routineDeleted')); break; }
   }
 });
 
@@ -760,10 +891,12 @@ render();
 (async () => {
   db = window.claude && window.claude.use ? await window.claude.use('db') : null;
   if (!db) { S.noDb = true; S.loading = false; render(); return; }
-  const onErr = e => { console.error(e); if (e && e.code !== 'revoked') toast('同步中断，请刷新页面'); };
+  const onErr = e => { console.error(e); if (e && e.code !== 'revoked') toast(t('t_syncBroken')); };
   db.doc('meta/settings').onSnapshot(s => {
     S.settingsExists = s.exists; S.settings = {...DEFAULTS, ...(s.exists ? s.data() : {})};
-    S.settingsLoaded = true; render(); maybeRoll();
+    S.settingsLoaded = true;
+    if (S.settings.lang && I18N[S.settings.lang] && S.settings.lang !== LANG) setLang(S.settings.lang);
+    render(); maybeRoll();
   }, onErr);
   db.collection('tasks').where('archived', '==', false).onSnapshot(s => {
     S.tasks = s.docs.map(d => ({id: d.id, ...d.data()})); S.tasksLoaded = true; S.loading = false;
